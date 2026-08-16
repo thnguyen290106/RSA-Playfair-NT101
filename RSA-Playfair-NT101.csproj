@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RootNamespace>RSA_Playfair_NT101</RootNamespace>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <!-- Project test nằm trong cây thư mục của project này, nên phải loại khỏi
+       default glob của SDK; nếu không, file test sẽ bị compile vào cả app. -->
+  <ItemGroup>
+    <Compile Remove="RSA-PlayFair-NT101-Test/**" />
+    <Page Remove="RSA-PlayFair-NT101-Test/**" />
+    <None Remove="RSA-PlayFair-NT101-Test/**" />
+    <Resource Remove="RSA-PlayFair-NT101-Test/**" />
+  </ItemGroup>
+
+</Project>

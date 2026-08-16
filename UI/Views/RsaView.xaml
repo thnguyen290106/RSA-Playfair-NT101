@@ -1,0 +1,463 @@
+<!--
+    Bốn tab con đi theo đúng thứ tự một buổi demo: tạo khoá → mã hoá → ký →
+    phá khoá. Mỗi tab tự nói giới hạn của mình để người xem tự bấm cũng hiểu.
+-->
+<UserControl x:Class="RSA_Playfair_NT101.UI.Views.RsaView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="{StaticResource UiFont}">
+
+    <UserControl.Resources>
+        <Style x:Key="FieldLabel" TargetType="TextBlock" BasedOn="{StaticResource CaptionText}">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,10,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="ReadOnlyValue" TargetType="TextBox" BasedOn="{StaticResource MonoBox}">
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="MaxHeight" Value="76" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+        </Style>
+
+        <Style x:Key="ErrorText" TargetType="TextBlock" BasedOn="{StaticResource BodyText}">
+            <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+        </Style>
+    </UserControl.Resources>
+
+    <DockPanel Margin="32,26,32,20">
+
+        <StackPanel DockPanel.Dock="Top">
+            <TextBlock Text="RSA" Style="{StaticResource DisplayText}" />
+            <TextBlock Style="{StaticResource BodyText}" Margin="0,6,0,0" MaxWidth="900"
+                       HorizontalAlignment="Left"
+                       Text="Mã hoá khoá công khai. Khoá công khai (n, e) dùng để mã hoá và xác thực chữ ký; khoá riêng (n, d) dùng để giải mã và ký. Bốn tab dưới đây đi từ tạo khoá tới phá khoá." />
+        </StackPanel>
+
+        <TabControl Style="{StaticResource SubTabControl}" Margin="0,16,0,0">
+
+            <!-- ==================================================== 1. Khoá -->
+            <TabItem Header="1 · Khoá">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel MaxWidth="1040" HorizontalAlignment="Left" Margin="0,0,0,10">
+
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Text="Cách tạo khoá" Style="{StaticResource SectionText}" />
+
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <RadioButton GroupName="KeyMode" Style="{StaticResource SegmentChip}"
+                                                 Content="Thủ công — tự nhập p, q, e"
+                                                 IsChecked="{Binding KeyMode, Converter={StaticResource ValueEquals}, ConverterParameter=Manual}" />
+                                    <RadioButton GroupName="KeyMode" Style="{StaticResource SegmentChip}"
+                                                 Content="Tự động — sinh số nguyên tố lớn"
+                                                 IsChecked="{Binding KeyMode, Converter={StaticResource ValueEquals}, ConverterParameter=Auto}" />
+                                </StackPanel>
+
+                                <!-- Thủ công: p, q, e nhập tay. Mặc định 61/53/17 khớp ví dụ giáo trình. -->
+                                <StackPanel Visibility="{Binding IsManualMode, Converter={StaticResource BoolToVisible}}">
+                                    <Grid Margin="0,14,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="p — số nguyên tố thứ nhất"
+                                                       Style="{StaticResource FieldLabel}" />
+                                            <TextBox Style="{StaticResource InputBox}" Margin="0,4,0,0"
+                                                     Text="{Binding ManualP, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2">
+                                            <TextBlock Text="q — số nguyên tố thứ hai"
+                                                       Style="{StaticResource FieldLabel}" />
+                                            <TextBox Style="{StaticResource InputBox}" Margin="0,4,0,0"
+                                                     Text="{Binding ManualQ, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="4">
+                                            <TextBlock Text="e — số mũ công khai"
+                                                       Style="{StaticResource FieldLabel}" />
+                                            <TextBox Style="{StaticResource InputBox}" Margin="0,4,0,0"
+                                                     Text="{Binding ManualE, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <TextBlock Style="{StaticResource CaptionText}" Margin="0,8,0,0"
+                                               Text="p và q phải là số nguyên tố và khác nhau. e phải nguyên tố cùng nhau với φ(n) = (p−1)(q−1); để trống thì ứng dụng tự chọn e." />
+                                </StackPanel>
+
+                                <!-- Tự động: chọn độ dài khoá. -->
+                                <StackPanel Visibility="{Binding IsAutoMode, Converter={StaticResource BoolToVisible}}">
+                                    <TextBlock Text="Độ dài khoá n (bit)" Style="{StaticResource FieldLabel}"
+                                               Margin="0,14,0,0" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                        <RadioButton GroupName="KeySize" Style="{StaticResource SegmentChip}"
+                                                     Content="512"
+                                                     IsChecked="{Binding KeySizeBits, Converter={StaticResource ValueEquals}, ConverterParameter=512}" />
+                                        <RadioButton GroupName="KeySize" Style="{StaticResource SegmentChip}"
+                                                     Content="1024"
+                                                     IsChecked="{Binding KeySizeBits, Converter={StaticResource ValueEquals}, ConverterParameter=1024}" />
+                                        <RadioButton GroupName="KeySize" Style="{StaticResource SegmentChip}"
+                                                     Content="2048"
+                                                     IsChecked="{Binding KeySizeBits, Converter={StaticResource ValueEquals}, ConverterParameter=2048}" />
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource CaptionText}" Margin="0,8,0,0"
+                                               Text="Sinh số nguyên tố bằng Miller–Rabin (40 nhân chứng). Khoá 2048 bit có thể mất vài giây; trong lúc đó cửa sổ vẫn dùng được và có thể bấm Huỷ." />
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                                    <Button Content="Tạo khoá" Style="{StaticResource PrimaryButton}"
+                                            Command="{Binding GenerateKeyCommand}" />
+                                    <Button Content="Huỷ" Style="{StaticResource GhostButton}" Margin="10,0,0,0"
+                                            Command="{Binding CancelKeyCommand}"
+                                            IsEnabled="{Binding IsGeneratingKey}" />
+                                    <TextBlock Text="{Binding KeyProgress}" Style="{StaticResource CaptionText}"
+                                               VerticalAlignment="Center" Margin="14,0,0,0" />
+                                </StackPanel>
+
+                                <Border Style="{StaticResource DangerBanner}" Margin="0,14,0,0"
+                                        Visibility="{Binding KeyError, Converter={StaticResource EmptyToCollapsed}}">
+                                    <TextBlock Text="{Binding KeyError}" Style="{StaticResource ErrorText}" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Khoá hiện tại" Style="{StaticResource SectionText}" />
+                                <TextBlock Style="{StaticResource CaptionText}" Margin="0,4,0,0"
+                                           Text="Khoá công khai là (n, e) — chia cho mọi người. Khoá riêng là (n, d) — giữ kín. p, q, φ(n) chỉ dùng lúc tạo khoá; ai biết chúng là phá được khoá." />
+
+                                <Grid Margin="0,14,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="190" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabel}"
+                                               Text="p (số nguyên tố)" />
+                                    <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                             Text="{Binding Key.P, Mode=OneWay}" />
+
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabel}"
+                                               Text="q (số nguyên tố)" />
+                                    <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                             Text="{Binding Key.Q, Mode=OneWay}" />
+
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabel}"
+                                               Text="n = p × q (modulus)" />
+                                    <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                             Text="{Binding Key.N, Mode=OneWay}" />
+
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource FieldLabel}"
+                                               Text="φ(n) = (p−1)(q−1)" />
+                                    <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                             Text="{Binding Key.Phi, Mode=OneWay}" />
+
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource FieldLabel}"
+                                               Text="λ(n) = lcm(p−1, q−1)" />
+                                    <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                             Text="{Binding Key.Lambda, Mode=OneWay}" />
+
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Style="{StaticResource FieldLabel}"
+                                               Text="e (số mũ công khai)" />
+                                    <TextBox Grid.Row="5" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                             Text="{Binding Key.E, Mode=OneWay}" />
+
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Style="{StaticResource FieldLabel}"
+                                               Text="d = e⁻¹ mod φ(n)" />
+                                    <TextBox Grid.Row="6" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                             Text="{Binding Key.D, Mode=OneWay}" />
+                                </Grid>
+
+                                <Border Style="{StaticResource InfoBanner}"
+                                        Visibility="{Binding KeyNotes, Converter={StaticResource EmptyToCollapsed}}">
+                                    <TextBlock Text="{Binding KeyNotes}" Style="{StaticResource BodyText}" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <!-- ==================================================== 2. Mã hoá -->
+            <TabItem Header="2 · Mã hoá">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel MaxWidth="1040" HorizontalAlignment="Left" Margin="0,0,0,10">
+
+                        <Border Style="{StaticResource WarningBanner}">
+                            <TextBlock Style="{StaticResource BodyText}"
+                                       Foreground="{StaticResource WarningBrush}"
+                                       Text="RSA sách giáo khoa (textbook RSA): không có phần đệm ngẫu nhiên. Cùng một bản rõ với cùng một khoá luôn cho ra cùng một bản mã, nên bản mã bị so sánh và dò được. Chuẩn dùng thật (PKCS#1 v1.5, OAEP) thêm phần đệm ngẫu nhiên trước khi mã hoá." />
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="16" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Bản rõ" Style="{StaticResource SectionText}" />
+                                        <TextBlock Style="{StaticResource CaptionText}" Margin="0,2,0,0"
+                                                   Text="Văn bản UTF-8, cắt thành từng block nhỏ hơn n." />
+                                        <TextBox Style="{StaticResource InputBox}" Height="120" Margin="0,8,0,0"
+                                                 AcceptsReturn="True" TextWrapping="Wrap"
+                                                 VerticalScrollBarVisibility="Auto"
+                                                 VerticalContentAlignment="Top"
+                                                 Text="{Binding PlainText, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="2">
+                                        <TextBlock Text="Bản mã (Base64)" Style="{StaticResource SectionText}" />
+                                        <TextBlock Style="{StaticResource CaptionText}" Margin="0,2,0,0"
+                                                   Text="Ô này dùng cho cả hai chiều: dán bản mã vào đây rồi bấm Giải mã." />
+                                        <TextBox Style="{StaticResource MonoBox}" Height="120" Margin="0,8,0,0"
+                                                 Text="{Binding CipherText, UpdateSourceTrigger=PropertyChanged}" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                                    <Button Content="Mã hoá bằng (n, e)" Style="{StaticResource PrimaryButton}"
+                                            Command="{Binding EncryptCommand}" />
+                                    <Button Content="Giải mã bằng (n, d)" Style="{StaticResource GhostButton}"
+                                            Margin="10,0,0,0" Command="{Binding DecryptCommand}" />
+                                </StackPanel>
+                                <TextBlock Text="Bản rõ sau khi giải mã" Style="{StaticResource FieldLabel}"
+                                           Margin="0,16,0,0" />
+                                <TextBox Style="{StaticResource ReadOnlyValue}" Margin="0,6,0,0" MinHeight="46"
+                                         Text="{Binding DecryptedText, Mode=OneWay}" />
+
+                                <Border Style="{StaticResource DangerBanner}" Margin="0,8,0,0"
+                                        Visibility="{Binding CipherError, Converter={StaticResource EmptyToCollapsed}}">
+                                    <TextBlock Text="{Binding CipherError}" Style="{StaticResource ErrorText}" />
+                                </Border>
+
+                                <TextBlock Text="Xem bản mã dưới dạng" Style="{StaticResource FieldLabel}"
+                                           Margin="0,18,0,0" />
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <RadioButton GroupName="CipherFormat" Style="{StaticResource SegmentChip}"
+                                                 Content="Base64"
+                                                 IsChecked="{Binding CipherFormat, Converter={StaticResource ValueEquals}, ConverterParameter=Base64}" />
+                                    <RadioButton GroupName="CipherFormat" Style="{StaticResource SegmentChip}"
+                                                 Content="Hex"
+                                                 IsChecked="{Binding CipherFormat, Converter={StaticResource ValueEquals}, ConverterParameter=Hex}" />
+                                    <RadioButton GroupName="CipherFormat" Style="{StaticResource SegmentChip}"
+                                                 Content="Thập phân (từng block)"
+                                                 IsChecked="{Binding CipherFormat, Converter={StaticResource ValueEquals}, ConverterParameter=Decimal}" />
+                                </StackPanel>
+                                <TextBox Style="{StaticResource ReadOnlyValue}" Margin="0,8,0,0" MaxHeight="120"
+                                         MinHeight="46" Text="{Binding CipherView, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource CaptionText}"
+                                           Text="Bản mã gồm 4 byte đầu ghi độ dài bản rõ, sau đó là các block c = mᵉ mod n, mỗi block có độ rộng cố định." />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Từng block: m → c = mᵉ mod n"
+                                           Style="{StaticResource SectionText}" />
+                                <TextBlock Style="{StaticResource CaptionText}" Margin="0,2,0,0"
+                                           Text="Bấm Mã hoá để có bảng này. Chọn một dòng để xem chi tiết phép luỹ thừa modulo ở bảng dưới." />
+
+                                <DataGrid Style="{StaticResource TraceGrid}" Margin="0,10,0,0" MaxHeight="190"
+                                          ItemsSource="{Binding BlockTraces}"
+                                          SelectedItem="{Binding SelectedBlock}">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Block" Width="60"
+                                                            Binding="{Binding BlockIndex}" />
+                                        <DataGridTextColumn Header="Nội dung" Width="180"
+                                                            Binding="{Binding PlainPreview}" />
+                                        <DataGridTextColumn Header="m (bản rõ dạng số)" Width="*"
+                                                            Binding="{Binding PlainValue}" />
+                                        <DataGridTextColumn Header="c (bản mã dạng số)" Width="*"
+                                                            Binding="{Binding CipherValue}" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                                <TextBlock Text="Bình phương và nhân (square-and-multiply)"
+                                           Style="{StaticResource SectionText}" Margin="0,18,0,0" />
+                                <TextBlock Style="{StaticResource CaptionText}" Margin="0,2,0,0"
+                                           Text="Cách máy tính thật sự tính mᵉ mod n: duyệt e theo từng bit, mỗi bit bình phương một lần và nhân thêm m khi bit bằng 1. Nhờ vậy khoá 1024 bit chỉ cần khoảng 1024 vòng thay vì e vòng." />
+                                <TextBlock Text="{Binding ModPowSummary}" Style="{StaticResource MonoText}"
+                                           Margin="0,8,0,0"
+                                           Visibility="{Binding ModPowSummary, Converter={StaticResource EmptyToCollapsed}}" />
+
+                                <DataGrid Style="{StaticResource TraceGrid}" Margin="0,8,0,0" MaxHeight="240"
+                                          ItemsSource="{Binding ModPowSteps}">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Bước" Width="60"
+                                                            Binding="{Binding StepIndex}" />
+                                        <DataGridTextColumn Header="Bit thứ" Width="70"
+                                                            Binding="{Binding BitIndex}" />
+                                        <DataGridTextColumn Header="Bit" Width="50"
+                                                            Binding="{Binding Bit}" />
+                                        <DataGridTextColumn Header="Sau bình phương" Width="*"
+                                                            Binding="{Binding AfterSquare}" />
+                                        <DataGridTextColumn Header="Sau khi nhân m" Width="*"
+                                                            Binding="{Binding AfterMultiply}" />
+                                        <DataGridTextColumn Header="Giá trị tích luỹ" Width="*"
+                                                            Binding="{Binding Accumulator}" />
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <!-- ==================================================== 3. Chữ ký -->
+            <TabItem Header="3 · Chữ ký số">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel MaxWidth="1040" HorizontalAlignment="Left" Margin="0,0,0,10">
+
+                        <Border Style="{StaticResource InfoBanner}">
+                            <TextBlock Style="{StaticResource BodyText}"
+                                       Text="Ký thì dùng khoá riêng, xác thực thì dùng khoá công khai — ngược với mã hoá. Thông điệp được băm bằng SHA-256 trước, rồi ký trên bản băm: chữ ký = hashᵈ mod n. Vì bản băm dài 256 bit nên khoá phải từ 512 bit trở lên." />
+                        </Border>
+
+                        <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Thông điệp" Style="{StaticResource SectionText}" />
+                                <TextBox Style="{StaticResource InputBox}" Height="80" Margin="0,8,0,0"
+                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                         VerticalContentAlignment="Top"
+                                         Text="{Binding SignMessage, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                                    <Button Content="Ký bằng khoá riêng" Style="{StaticResource PrimaryButton}"
+                                            Command="{Binding SignCommand}"
+                                            IsEnabled="{Binding CanSign}" />
+                                    <Button Content="Xác thực bằng khoá công khai"
+                                            Style="{StaticResource GhostButton}" Margin="10,0,0,0"
+                                            Command="{Binding VerifyCommand}" />
+                                    <Button Content="Sửa 1 ký tự rồi xác thực lại"
+                                            Style="{StaticResource GhostButton}" Margin="10,0,0,0"
+                                            Command="{Binding TamperCommand}" />
+                                </StackPanel>
+
+                                <TextBlock Text="SHA-256 của thông điệp" Style="{StaticResource FieldLabel}"
+                                           Margin="0,16,0,0" />
+                                <TextBox Style="{StaticResource ReadOnlyValue}" Margin="0,6,0,0" MinHeight="44"
+                                         Text="{Binding SignHashHex, Mode=OneWay}" />
+
+                                <TextBlock Text="Chữ ký (dạng số thập phân)" Style="{StaticResource FieldLabel}" />
+                                <TextBox Style="{StaticResource MonoBox}" Margin="0,6,0,0" MinHeight="60"
+                                         MaxHeight="100"
+                                         Text="{Binding SignatureText, UpdateSourceTrigger=PropertyChanged}" />
+                                <Border Style="{StaticResource DangerBanner}" Margin="0,8,0,0"
+                                        Visibility="{Binding SignError, Converter={StaticResource EmptyToCollapsed}}">
+                                    <TextBlock Text="{Binding SignError}" Style="{StaticResource ErrorText}" />
+                                </Border>
+
+                                <!--
+                                    Một băng duy nhất cho kết quả xác thực, đổi màu theo VerifyPassed:
+                                    xanh là hợp lệ, đỏ là không. Chưa bấm xác thực thì chưa hiện gì.
+                                -->
+                                <Border Margin="0,8,0,0" BorderThickness="1" CornerRadius="8" Padding="14,11"
+                                        Visibility="{Binding HasVerified, Converter={StaticResource BoolToVisible}}">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="{StaticResource DangerTintBrush}" />
+                                            <Setter Property="BorderBrush" Value="#FECACA" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding VerifyPassed}" Value="True">
+                                                    <Setter Property="Background"
+                                                            Value="{StaticResource SuccessTintBrush}" />
+                                                    <Setter Property="BorderBrush" Value="#A7F3D0" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <TextBlock Text="{Binding VerifyStatus}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource BodyText}">
+                                                <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding VerifyPassed}" Value="True">
+                                                        <Setter Property="Foreground"
+                                                                Value="{StaticResource SuccessBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+            <!-- ==================================================== 4. Phân tích -->
+            <TabItem Header="4 · Phân tích &amp; điểm yếu">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel MaxWidth="1040" HorizontalAlignment="Left" Margin="0,0,0,10">
+
+                        <Border Style="{StaticResource Card}">
+                            <StackPanel>
+                                <TextBlock Text="Phân tích n ra p × q" Style="{StaticResource SectionText}" />
+                                <TextBlock Style="{StaticResource BodyText}" Margin="0,4,0,0"
+                                           Text="Toàn bộ độ an toàn của RSA nằm ở chỗ không ai phân tích được n. Biết p và q là tính ra được φ(n) rồi ra d — khoá riêng mất. Ở đây dùng cách chia thử (trial division) nên chỉ phá được n nhỏ; khoá 1024 bit thì cách này chạy lâu hơn tuổi của vũ trụ." />
+
+                                <TextBlock Text="n cần phân tích" Style="{StaticResource FieldLabel}"
+                                           Margin="0,14,0,0" />
+                                <TextBox Style="{StaticResource MonoBox}" Margin="0,6,0,0" MaxHeight="70"
+                                         Text="{Binding FactorInput, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                    <Button Content="Phân tích" Style="{StaticResource PrimaryButton}"
+                                            Command="{Binding FactorCommand}" />
+                                    <Button Content="Huỷ" Style="{StaticResource GhostButton}" Margin="10,0,0,0"
+                                            Command="{Binding CancelFactorCommand}"
+                                            IsEnabled="{Binding IsFactoring}" />
+                                    <TextBlock Style="{StaticResource CaptionText}" VerticalAlignment="Center"
+                                               Margin="14,0,0,0">
+                                        <Run Text="Số phép thử:" />
+                                        <Run Text="{Binding FactorIterations, Mode=OneWay, StringFormat=N0}" />
+                                        <Run Text="   ·   Thời gian:" />
+                                        <Run Text="{Binding FactorElapsed, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
+
+                                <Border Style="{StaticResource InfoBanner}" Margin="0,12,0,0"
+                                        Visibility="{Binding FactorStatus, Converter={StaticResource EmptyToCollapsed}}">
+                                    <TextBlock Text="{Binding FactorStatus}" Style="{StaticResource BodyText}" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource Card}" Margin="0,16,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Thiếu tính ngẫu nhiên (deterministic encryption)"
+                                           Style="{StaticResource SectionText}" />
+                                <TextBlock Style="{StaticResource BodyText}" Margin="0,4,0,0"
+                                           Text="Mã hoá cùng một bản rõ hai lần rồi so sánh. Bản mã giống nhau nghĩa là kẻ nghe được có thể nhận ra hai lần gửi cùng một nội dung, và với tập bản rõ nhỏ (ví dụ CÓ/KHÔNG) thì chỉ cần mã hoá thử từng phương án là dò ra." />
+
+                                <Button Content="Mã hoá hai lần rồi so sánh"
+                                        Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"
+                                        Margin="0,14,0,0" Command="{Binding DeterminismCommand}" />
+
+                                <TextBox Style="{StaticResource ReadOnlyValue}" Margin="0,12,0,0" MaxHeight="200"
+                                         Visibility="{Binding DeterminismText, Converter={StaticResource EmptyToCollapsed}}"
+                                         Text="{Binding DeterminismText, Mode=OneWay}" />
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</UserControl>

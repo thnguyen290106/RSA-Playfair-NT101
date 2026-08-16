@@ -1,0 +1,87 @@
+<!--
+    Trang chủ: nói ngay ứng dụng có gì và mở thẳng vào thuật toán. Người xem tự
+    bấm thử mà không có ai giải thích, nên phần chữ ở đây phải tự đủ nghĩa.
+-->
+<UserControl x:Class="RSA_Playfair_NT101.UI.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="{StaticResource UiFont}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32,28,32,32" MaxWidth="1040" HorizontalAlignment="Left">
+
+            <Border Style="{StaticResource Card}" Padding="28,26">
+                <StackPanel>
+                    <TextBlock Text="NT101 · BÀI TẬP MẬT MÃ HỌC" Style="{StaticResource CaptionText}"
+                               FontWeight="SemiBold" />
+                    <TextBlock Text="Mã hoá RSA &amp; Playfair" Style="{StaticResource DisplayText}"
+                               Margin="0,6,0,0" />
+                    <TextBlock Style="{StaticResource BodyText}" Margin="0,10,0,0"
+                               Text="Ứng dụng minh hoạ hai thuật toán mã hoá: RSA (khoá công khai, hiện đại) và Playfair (thay thế theo cặp ký tự, cổ điển). Mỗi bước biến đổi đều hiện ra để đối chiếu với công thức, kèm phần cho thấy điểm yếu của thuật toán." />
+                    <TextBlock Style="{StaticResource CaptionText}" Margin="0,10,0,0"
+                               Text="Toàn bộ phép toán số lớn dùng System.Numerics.BigInteger. Không gọi thư viện mã hoá có sẵn của .NET (trừ SHA-256 khi băm thông điệp để ký)." />
+                </StackPanel>
+            </Border>
+
+            <Grid Margin="0,18,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Style="{StaticResource Card}" Padding="22">
+                    <StackPanel>
+                        <Border Width="46" Height="46" CornerRadius="10"
+                                Background="{StaticResource PrimaryTintBrush}"
+                                HorizontalAlignment="Left">
+                            <TextBlock Text="RSA" FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+
+                        <TextBlock Text="RSA" Style="{StaticResource TitleText}" Margin="0,14,0,0" />
+                        <TextBlock Style="{StaticResource BodyText}" Margin="0,4,0,0"
+                                   Text="Sinh cặp khoá từ hai số nguyên tố, mã hoá bằng khoá công khai, giải mã bằng khoá riêng." />
+
+                        <TextBlock Style="{StaticResource BodyText}" Margin="0,12,0,0"
+                                   Text="• Sinh khoá tự động 512/1024/2048 bit, hoặc tự nhập p, q, e&#x0a;• Mã hoá / giải mã văn bản, xem bản mã ở Base64, hex, thập phân&#x0a;• Ký và xác thực chữ ký số SHA-256&#x0a;• Thử phân tích n ra p·q để thấy khoá nhỏ bị phá được" />
+
+                        <Button Content="Mở RSA" Style="{StaticResource PrimaryButton}"
+                                Command="{Binding OpenRsaCommand}"
+                                HorizontalAlignment="Left" Margin="0,18,0,0" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource Card}" Padding="22">
+                    <StackPanel>
+                        <Border Width="46" Height="46" CornerRadius="10"
+                                Background="{StaticResource AccentTintBrush}"
+                                HorizontalAlignment="Left">
+                            <TextBlock Text="PF" FontSize="13" FontWeight="Bold"
+                                       Foreground="{StaticResource AccentBrush}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+
+                        <TextBlock Text="Playfair" Style="{StaticResource TitleText}" Margin="0,14,0,0" />
+                        <TextBlock Style="{StaticResource BodyText}" Margin="0,4,0,0"
+                                   Text="Mã hoá từng cặp ký tự dựa trên vị trí của chúng trong một ma trận chữ sinh từ khoá." />
+
+                        <TextBlock Style="{StaticResource BodyText}" Margin="0,12,0,0"
+                                   Text="• Ma trận 5×5 (gộp I/J) và 6×6 (A–Z + 0–9)&#x0a;• Xem từng cặp ký tự đi qua quy tắc nào&#x0a;• Phân tích tần suất cặp ký tự để thấy điểm yếu" />
+
+                        <Border Style="{StaticResource InfoBanner}" Margin="0,14,0,0">
+                            <TextBlock Style="{StaticResource BodyText}"
+                                       Foreground="{StaticResource TextSecondaryBrush}"
+                                       Text="Phần Playfair chưa được cài đặt trong bản này." />
+                        </Border>
+
+                        <Button Content="Mở Playfair" Style="{StaticResource GhostButton}"
+                                Command="{Binding OpenPlayfairCommand}"
+                                HorizontalAlignment="Left" Margin="0,18,0,0" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
