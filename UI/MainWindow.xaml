@@ -7,7 +7,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:RSA_Playfair_NT101.UI.ViewModels"
-        Title="RSA &amp; Playfair — NT101"
+        Title="RSA &amp; Playfair"
         Height="800" Width="1280" MinHeight="640" MinWidth="1000"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BackgroundBrush}"
@@ -30,14 +30,8 @@
             <DockPanel Margin="14,20">
 
                 <StackPanel DockPanel.Dock="Top" Margin="14,0,14,20">
-                    <TextBlock Text="NT101 · Mật mã học" Style="{StaticResource CaptionText}" />
-                    <TextBlock Text="Mã hoá &amp; Chữ ký số" Style="{StaticResource TitleText}"
-                               Margin="0,2,0,0" />
+                    <TextBlock Text="Mã hoá &amp; Chữ ký số" Style="{StaticResource TitleText}" />
                 </StackPanel>
-
-                <TextBlock DockPanel.Dock="Bottom" Margin="14,20,14,0"
-                           Style="{StaticResource CaptionText}"
-                           Text="Bản demo phục vụ học tập. Thuật toán ở đây không có phần đệm ngẫu nhiên nên không dùng cho dữ liệu thật." />
 
                 <ListBox Style="{StaticResource NavList}"
                          ItemContainerStyle="{StaticResource NavItemStyle}"
