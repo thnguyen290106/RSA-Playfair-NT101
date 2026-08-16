@@ -145,7 +145,6 @@
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
                                         <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
 
                                     <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabel}"
@@ -169,18 +168,13 @@
                                              Text="{Binding Key.Phi, Mode=OneWay}" />
 
                                     <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource FieldLabel}"
-                                               Text="λ(n) = lcm(p−1, q−1)" />
-                                    <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
-                                             Text="{Binding Key.Lambda, Mode=OneWay}" />
-
-                                    <TextBlock Grid.Row="5" Grid.Column="0" Style="{StaticResource FieldLabel}"
                                                Text="e (số mũ công khai)" />
-                                    <TextBox Grid.Row="5" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                    <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
                                              Text="{Binding Key.E, Mode=OneWay}" />
 
-                                    <TextBlock Grid.Row="6" Grid.Column="0" Style="{StaticResource FieldLabel}"
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Style="{StaticResource FieldLabel}"
                                                Text="d = e⁻¹ mod φ(n)" />
-                                    <TextBox Grid.Row="6" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                    <TextBox Grid.Row="5" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
                                              Text="{Binding Key.D, Mode=OneWay}" />
                                 </Grid>
 
@@ -319,10 +313,14 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel MaxWidth="1040" HorizontalAlignment="Left" Margin="0,0,0,10">
 
-                        <Border Style="{StaticResource InfoBanner}">
-                            <TextBlock Style="{StaticResource BodyText}"
-                                       Text="Ký thì dùng khoá riêng, xác thực thì dùng khoá công khai — ngược với mã hoá. Thông điệp được băm bằng SHA-256 trước, rồi ký trên bản băm: chữ ký = hashᵈ mod n. Vì bản băm dài 256 bit nên khoá phải từ 512 bit trở lên." />
-                        </Border>
+                        <!-- Băng này là điều dễ hiểu sai nhất của tab: viền chạy để hút mắt vào trước. -->
+                        <Grid>
+                            <Border Style="{StaticResource InfoBanner}">
+                                <TextBlock Style="{StaticResource BodyText}"
+                                           Text="Ký thì dùng khoá riêng, xác thực thì dùng khoá công khai — ngược với mã hoá. Thông điệp được băm bằng SHA-256 trước, rồi ký trên bản băm: chữ ký = hashᵈ mod n. Vì bản băm dài 256 bit nên khoá phải từ 512 bit trở lên." />
+                            </Border>
+                            <Rectangle Style="{StaticResource MarchingBorder}" />
+                        </Grid>
 
                         <Border Style="{StaticResource Card}" Margin="0,16,0,0">
                             <StackPanel>
