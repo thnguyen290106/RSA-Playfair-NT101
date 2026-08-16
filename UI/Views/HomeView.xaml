@@ -11,16 +11,7 @@
         <StackPanel Margin="32,28,32,32" MaxWidth="1040" HorizontalAlignment="Left">
 
             <Border Style="{StaticResource Card}" Padding="28,26">
-                <StackPanel>
-                    <TextBlock Text="NT101 · BÀI TẬP MẬT MÃ HỌC" Style="{StaticResource CaptionText}"
-                               FontWeight="SemiBold" />
-                    <TextBlock Text="Mã hoá RSA &amp; Playfair" Style="{StaticResource DisplayText}"
-                               Margin="0,6,0,0" />
-                    <TextBlock Style="{StaticResource BodyText}" Margin="0,10,0,0"
-                               Text="Ứng dụng minh hoạ hai thuật toán mã hoá: RSA (khoá công khai, hiện đại) và Playfair (thay thế theo cặp ký tự, cổ điển). Mỗi bước biến đổi đều hiện ra để đối chiếu với công thức, kèm phần cho thấy điểm yếu của thuật toán." />
-                    <TextBlock Style="{StaticResource CaptionText}" Margin="0,10,0,0"
-                               Text="Toàn bộ phép toán số lớn dùng System.Numerics.BigInteger. Không gọi thư viện mã hoá có sẵn của .NET (trừ SHA-256 khi băm thông điệp để ký)." />
-                </StackPanel>
+                <TextBlock Text="Mã hoá RSA &amp; Playfair" Style="{StaticResource DisplayText}" />
             </Border>
 
             <Grid Margin="0,18,0,0">
