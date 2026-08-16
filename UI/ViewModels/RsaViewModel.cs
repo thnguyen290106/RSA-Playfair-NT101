@@ -179,13 +179,6 @@ public sealed class RsaViewModel : ViewModelBase
                     + "và sinh khoá 1024 bit.";
             }
 
-            if (_key.Lambda != _key.Phi)
-            {
-                notes += $" Ghi chú: λ(n) = {_key.Lambda} nhỏ hơn φ(n) = {_key.Phi}; "
-                    + "chuẩn PKCS#1 tính d theo λ(n), ứng dụng này tính theo φ(n) như giáo trình. "
-                    + "Cả hai đều giải mã đúng.";
-            }
-
             return notes;
         }
     }
