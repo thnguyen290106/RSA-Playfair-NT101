@@ -338,4 +338,31 @@
         <Setter Property="BorderBrush" Value="#FECACA" />
     </Style>
 
+    <!--
+        Viền nét gạch chạy quanh băng thông báo để hút mắt người xem. Dùng bằng cách
+        đặt Rectangle này phủ lên một Border trong cùng một Grid.
+        StrokeDashArray và StrokeDashOffset tính theo đơn vị StrokeThickness, nên chu
+        kỳ nét là 4 + 3 = 7; animation chạy đúng 7 đơn vị để vòng lặp liền mạch.
+    -->
+    <Style x:Key="MarchingBorder" TargetType="Rectangle">
+        <Setter Property="Stroke" Value="{StaticResource AccentBrush}" />
+        <Setter Property="StrokeThickness" Value="2" />
+        <Setter Property="StrokeDashArray" Value="4 3" />
+        <Setter Property="StrokeDashCap" Value="Round" />
+        <Setter Property="RadiusX" Value="8" />
+        <Setter Property="RadiusY" Value="8" />
+        <!-- Viền chỉ để trang trí: không được chắn chuột của nội dung bên dưới. -->
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Style.Triggers>
+            <EventTrigger RoutedEvent="FrameworkElement.Loaded">
+                <BeginStoryboard>
+                    <Storyboard RepeatBehavior="Forever">
+                        <DoubleAnimation Storyboard.TargetProperty="StrokeDashOffset"
+                                         From="0" To="7" Duration="0:0:1.4" />
+                    </Storyboard>
+                </BeginStoryboard>
+            </EventTrigger>
+        </Style.Triggers>
+    </Style>
+
 </ResourceDictionary>
