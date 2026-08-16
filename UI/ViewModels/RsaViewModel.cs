@@ -39,7 +39,7 @@ public sealed class RsaViewModel : ViewModelBase
     private CancellationTokenSource? _keyCts;
 
     // ---- Tab Mã hoá
-    private string _plainText = "Xin chào NT101!";
+    private string _plainText = "Xin chào!";
     private string _cipherText = string.Empty;
     private CipherFormat _cipherFormat = CipherFormat.Base64;
     private string _decryptedText = string.Empty;
