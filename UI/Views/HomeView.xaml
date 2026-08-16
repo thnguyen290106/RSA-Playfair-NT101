@@ -36,7 +36,7 @@
                                    Text="Sinh cặp khoá từ hai số nguyên tố, mã hoá bằng khoá công khai, giải mã bằng khoá riêng." />
 
                         <TextBlock Style="{StaticResource BodyText}" Margin="0,12,0,0"
-                                   Text="• Sinh khoá tự động 512/1024/2048 bit, hoặc tự nhập p, q, e&#x0a;• Mã hoá / giải mã văn bản, xem bản mã ở Base64, hex, thập phân&#x0a;• Ký và xác thực chữ ký số SHA-256&#x0a;• Thử phân tích n ra p·q để thấy khoá nhỏ bị phá được" />
+                                   Text="• Sinh khoá tự động 512/1024/2048 bit, hoặc tự nhập p, q, e&#x0a;• Mã hoá / giải mã văn bản, xem bản mã ở Base64, hex, thập phân&#x0a;• Ký và xác thực chữ ký số SHA-256" />
 
                         <Button Content="Mở RSA" Style="{StaticResource PrimaryButton}"
                                 Command="{Binding OpenRsaCommand}"

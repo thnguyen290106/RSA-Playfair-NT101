@@ -1,6 +1,6 @@
 <!--
-    Bốn tab con đi theo đúng thứ tự một buổi demo: tạo khoá → mã hoá → ký →
-    phá khoá. Mỗi tab tự nói giới hạn của mình để người xem tự bấm cũng hiểu.
+    Ba tab con đi theo đúng thứ tự một buổi demo: tạo khoá → mã hoá → ký.
+    Mỗi tab tự nói giới hạn của mình để người xem tự bấm cũng hiểu.
 -->
 <UserControl x:Class="RSA_Playfair_NT101.UI.Views.RsaView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -31,7 +31,7 @@
             <TextBlock Text="RSA" Style="{StaticResource DisplayText}" />
             <TextBlock Style="{StaticResource BodyText}" Margin="0,6,0,0" MaxWidth="900"
                        HorizontalAlignment="Left"
-                       Text="Mã hoá khoá công khai. Khoá công khai (n, e) dùng để mã hoá và xác thực chữ ký; khoá riêng (n, d) dùng để giải mã và ký. Bốn tab dưới đây đi từ tạo khoá tới phá khoá." />
+                       Text="Mã hoá khoá công khai. Khoá công khai (n, e) dùng để mã hoá và xác thực chữ ký; khoá riêng (n, d) dùng để giải mã và ký." />
         </StackPanel>
 
         <TabControl Style="{StaticResource SubTabControl}" Margin="0,16,0,0">
@@ -391,62 +391,6 @@
                                         </TextBlock.Style>
                                     </TextBlock>
                                 </Border>
-                            </StackPanel>
-                        </Border>
-                    </StackPanel>
-                </ScrollViewer>
-            </TabItem>
-            <!-- ==================================================== 4. Phân tích -->
-            <TabItem Header="4 · Phân tích &amp; điểm yếu">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel MaxWidth="1040" HorizontalAlignment="Left" Margin="0,0,0,10">
-
-                        <Border Style="{StaticResource Card}">
-                            <StackPanel>
-                                <TextBlock Text="Phân tích n ra p × q" Style="{StaticResource SectionText}" />
-                                <TextBlock Style="{StaticResource BodyText}" Margin="0,4,0,0"
-                                           Text="Toàn bộ độ an toàn của RSA nằm ở chỗ không ai phân tích được n. Biết p và q là tính ra được φ(n) rồi ra d — khoá riêng mất. Ở đây dùng cách chia thử (trial division) nên chỉ phá được n nhỏ; khoá 1024 bit thì cách này chạy lâu hơn tuổi của vũ trụ." />
-
-                                <TextBlock Text="n cần phân tích" Style="{StaticResource FieldLabel}"
-                                           Margin="0,14,0,0" />
-                                <TextBox Style="{StaticResource MonoBox}" Margin="0,6,0,0" MaxHeight="70"
-                                         Text="{Binding FactorInput, UpdateSourceTrigger=PropertyChanged}" />
-
-                                <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
-                                    <Button Content="Phân tích" Style="{StaticResource PrimaryButton}"
-                                            Command="{Binding FactorCommand}" />
-                                    <Button Content="Huỷ" Style="{StaticResource GhostButton}" Margin="10,0,0,0"
-                                            Command="{Binding CancelFactorCommand}"
-                                            IsEnabled="{Binding IsFactoring}" />
-                                    <TextBlock Style="{StaticResource CaptionText}" VerticalAlignment="Center"
-                                               Margin="14,0,0,0">
-                                        <Run Text="Số phép thử:" />
-                                        <Run Text="{Binding FactorIterations, Mode=OneWay, StringFormat=N0}" />
-                                        <Run Text="   ·   Thời gian:" />
-                                        <Run Text="{Binding FactorElapsed, Mode=OneWay}" />
-                                    </TextBlock>
-                                </StackPanel>
-
-                                <Border Style="{StaticResource InfoBanner}" Margin="0,12,0,0"
-                                        Visibility="{Binding FactorStatus, Converter={StaticResource EmptyToCollapsed}}">
-                                    <TextBlock Text="{Binding FactorStatus}" Style="{StaticResource BodyText}" />
-                                </Border>
-                            </StackPanel>
-                        </Border>
-                        <Border Style="{StaticResource Card}" Margin="0,16,0,0">
-                            <StackPanel>
-                                <TextBlock Text="Thiếu tính ngẫu nhiên (deterministic encryption)"
-                                           Style="{StaticResource SectionText}" />
-                                <TextBlock Style="{StaticResource BodyText}" Margin="0,4,0,0"
-                                           Text="Mã hoá cùng một bản rõ hai lần rồi so sánh. Bản mã giống nhau nghĩa là kẻ nghe được có thể nhận ra hai lần gửi cùng một nội dung, và với tập bản rõ nhỏ (ví dụ CÓ/KHÔNG) thì chỉ cần mã hoá thử từng phương án là dò ra." />
-
-                                <Button Content="Mã hoá hai lần rồi so sánh"
-                                        Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"
-                                        Margin="0,14,0,0" Command="{Binding DeterminismCommand}" />
-
-                                <TextBox Style="{StaticResource ReadOnlyValue}" Margin="0,12,0,0" MaxHeight="200"
-                                         Visibility="{Binding DeterminismText, Converter={StaticResource EmptyToCollapsed}}"
-                                         Text="{Binding DeterminismText, Mode=OneWay}" />
                             </StackPanel>
                         </Border>
                     </StackPanel>

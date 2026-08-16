@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Numerics;
 using System.Windows.Input;
 using RSA_Playfair_NT101.Core;
@@ -14,11 +13,11 @@ public enum RsaKeyMode { Auto, Manual }
 public enum CipherFormat { Base64, Hex, Decimal }
 
 /// <summary>
-/// ViewModel cho toàn bộ màn hình RSA (khoá, mã hoá, chữ ký, phân tích).
+/// ViewModel cho toàn bộ màn hình RSA (khoá, mã hoá, chữ ký).
 /// </summary>
 /// <remarks>
-/// Bốn tab dùng chung một ViewModel vì chúng dùng chung đúng một thứ quan trọng:
-/// cặp khoá hiện tại. Tách thành bốn ViewModel con sẽ phải dựng thêm cơ chế
+/// Ba tab dùng chung một ViewModel vì chúng dùng chung đúng một thứ quan trọng:
+/// cặp khoá hiện tại. Tách thành ba ViewModel con sẽ phải dựng thêm cơ chế
 /// đồng bộ khoá giữa chúng mà không đổi lại được gì.
 /// </remarks>
 public sealed class RsaViewModel : ViewModelBase
@@ -56,15 +55,6 @@ public sealed class RsaViewModel : ViewModelBase
     private bool _verifyPassed;
     private bool _hasVerified;
 
-    // ---- Tab Phân tích
-    private string _factorInput = "3233";
-    private string _factorStatus = string.Empty;
-    private long _factorIterations;
-    private string _factorElapsed = string.Empty;
-    private bool _isFactoring;
-    private CancellationTokenSource? _factorCts;
-    private string _determinismText = string.Empty;
-
     public RsaViewModel()
     {
         GenerateKeyCommand = new AsyncRelayCommand(
@@ -78,11 +68,6 @@ public sealed class RsaViewModel : ViewModelBase
         VerifyCommand = new RelayCommand(Verify);
         TamperCommand = new RelayCommand(Tamper);
 
-        FactorCommand = new AsyncRelayCommand(
-            FactorAsync, ex => FactorStatus = Describe(ex), () => !IsFactoring);
-        CancelFactorCommand = new RelayCommand(() => _factorCts?.Cancel());
-        DeterminismCommand = new RelayCommand(ProveDeterminism);
-
         // Khởi động với khoá giáo trình 61 × 53: mọi tab dùng được ngay mà không
         // phải chờ sinh khoá, và các con số khớp ví dụ trong sách.
         ApplyManualKey();
@@ -95,9 +80,6 @@ public sealed class RsaViewModel : ViewModelBase
     public ICommand SignCommand { get; }
     public ICommand VerifyCommand { get; }
     public ICommand TamperCommand { get; }
-    public ICommand FactorCommand { get; }
-    public ICommand CancelFactorCommand { get; }
-    public ICommand DeterminismCommand { get; }
 
     /// <summary>Vết từng block khi mã hoá, hiển thị trong bảng.</summary>
     public ObservableCollection<RsaBlockTrace> BlockTraces { get; } = [];
@@ -297,17 +279,6 @@ public sealed class RsaViewModel : ViewModelBase
         SignError = string.Empty;
         VerifyStatus = string.Empty;
         HasVerified = false;
-
-        DeterminismText = string.Empty;
-        FactorStatus = string.Empty;
-        FactorIterations = 0;
-        FactorElapsed = string.Empty;
-
-        // Chỉ nạp sẵn n vào tab Phân tích khi n còn trong tầm phân tích được.
-        if (key.KeySizeBits <= RsaAttack.MaxFactorableBits)
-        {
-            FactorInput = key.N.ToString();
-        }
     }
 
     private static BigInteger ParseBigInteger(string text, string label)
@@ -661,136 +632,5 @@ public sealed class RsaViewModel : ViewModelBase
         }
 
         Verify();
-    }
-
-    // ================================================================ Tab Phân tích
-
-    public string FactorInput
-    {
-        get => _factorInput;
-        set => SetProperty(ref _factorInput, value);
-    }
-
-    public string FactorStatus
-    {
-        get => _factorStatus;
-        private set => SetProperty(ref _factorStatus, value);
-    }
-
-    public long FactorIterations
-    {
-        get => _factorIterations;
-        private set => SetProperty(ref _factorIterations, value);
-    }
-
-    public string FactorElapsed
-    {
-        get => _factorElapsed;
-        private set => SetProperty(ref _factorElapsed, value);
-    }
-
-    public bool IsFactoring
-    {
-        get => _isFactoring;
-        private set => SetProperty(ref _isFactoring, value);
-    }
-
-    public string DeterminismText
-    {
-        get => _determinismText;
-        private set => SetProperty(ref _determinismText, value);
-    }
-
-    /// <summary>
-    /// Phân tích n bằng chia thử. Chạy nền và huỷ được, vì với n 64 bit việc này
-    /// có thể mất rất lâu — chính điểm đó là nội dung cần cho thấy.
-    /// </summary>
-    private async Task FactorAsync()
-    {
-        FactorStatus = string.Empty;
-        FactorIterations = 0;
-        FactorElapsed = string.Empty;
-
-        BigInteger n = ParseBigInteger(FactorInput, "n");
-
-        // Chỉ suy ra được d khi n đúng là modulus của khoá đang dùng (mới biết e).
-        BigInteger? publicExponent = _key is not null && _key.N == n ? _key.E : null;
-
-        using CancellationTokenSource cts = new();
-        _factorCts = cts;
-        IsFactoring = true;
-        Stopwatch stopwatch = Stopwatch.StartNew();
-
-        try
-        {
-            Progress<long> progress = new(count =>
-            {
-                FactorIterations = count;
-                FactorElapsed = FormatElapsed(stopwatch.Elapsed);
-            });
-
-            FactorResult? result = await RsaAttack.FactorAsync(
-                n, publicExponent, progress, cts.Token);
-
-            FactorIterations = result?.Iterations ?? FactorIterations;
-            FactorElapsed = FormatElapsed(result?.Elapsed ?? stopwatch.Elapsed);
-
-            FactorStatus = result is null
-                ? $"Không tìm được thừa số: {n} không phải tích của hai số nguyên tố."
-                : $"Tìm được p = {result.P} và q = {result.Q} sau {result.Iterations:N0} phép thử."
-                    + (result.RecoveredPrivateExponent is { } d
-                        ? $" Từ đó suy ra khoá riêng d = {d} — khoá đã bị phá."
-                        : " Muốn suy ra d thì cần thêm e.");
-        }
-        catch (OperationCanceledException)
-        {
-            FactorStatus = $"Đã huỷ sau {FactorIterations:N0} phép thử.";
-        }
-        finally
-        {
-            IsFactoring = false;
-            _factorCts = null;
-        }
-    }
-
-    private static string FormatElapsed(TimeSpan elapsed) => $"{elapsed.TotalSeconds:0.000} giây";
-
-    /// <summary>
-    /// Mã hoá cùng một bản rõ hai lần rồi so sánh, cho thấy RSA không padding là
-    /// tất định: kẻ nghe được có thể nhận ra hai bản tin giống nhau mà không cần
-    /// giải mã.
-    /// </summary>
-    private void ProveDeterminism()
-    {
-        DeterminismText = string.Empty;
-
-        if (_key is null)
-        {
-            DeterminismText = "Chưa có khoá. Hãy tạo khoá ở tab Khoá trước.";
-            return;
-        }
-
-        string sample = string.IsNullOrEmpty(PlainText) ? "TAN CONG LUC 5 GIO" : PlainText;
-
-        try
-        {
-            string first = RsaCipher.EncryptText(sample, _key.N, _key.E);
-            string second = RsaCipher.EncryptText(sample, _key.N, _key.E);
-
-            DeterminismText =
-                $"Bản rõ: {sample}{Environment.NewLine}"
-                + $"Lần mã hoá 1: {first}{Environment.NewLine}"
-                + $"Lần mã hoá 2: {second}{Environment.NewLine}{Environment.NewLine}"
-                + (first == second
-                    ? "Hai bản mã giống nhau từng ký tự. RSA sách giáo khoa không có phần đệm "
-                        + "ngẫu nhiên, nên cùng bản rõ và cùng khoá luôn cho cùng bản mã. "
-                        + "Chuẩn thực tế (PKCS#1 v1.5, OAEP) thêm phần đệm ngẫu nhiên để phá "
-                        + "tính chất này."
-                    : "Hai bản mã khác nhau — điều này không đúng với RSA không padding.");
-        }
-        catch (Exception ex) when (ex is ArgumentException or FormatException)
-        {
-            DeterminismText = Describe(ex);
-        }
     }
 }
