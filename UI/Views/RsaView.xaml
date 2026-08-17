@@ -133,52 +133,69 @@
                                 <TextBlock Style="{StaticResource CaptionText}" Margin="0,4,0,0"
                                            Text="Khoá công khai là (n, e) — chia cho mọi người. Khoá riêng là (n, d) — giữ kín. p, q, φ(n) chỉ dùng lúc tạo khoá; ai biết chúng là phá được khoá." />
 
-                                <Grid Margin="0,14,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="190" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
+                                <!-- Chưa tạo khoá thì không hiện sáu ô, để không ai nhìn sáu ô
+                                     trống mà tưởng khoá vừa tạo ra là rỗng. Lời nhắc phải bấm
+                                     gì nằm ở băng KeyNotes ngay dưới.
+                                     Dùng ContentControl chứ không phải Visibility: Content rỗng
+                                     là WPF không dựng template, nên sáu binding bên dưới không
+                                     tồn tại lúc chưa có khoá. Ẩn bằng Visibility thì chúng vẫn
+                                     được tạo và vẫn bám vào một nguồn null → PathError, mà
+                                     UiSmokeTests soi trạng thái từng binding nên sẽ đỏ. -->
+                                <ContentControl Content="{Binding Key}">
+                                    <ContentControl.ContentTemplate>
+                                        <DataTemplate>
+                                            <!-- Lề trên nằm ở đây, không nằm ở ContentControl:
+                                                 lúc chưa có khoá thì template không dựng nên
+                                                 khoảng trắng cũng biến mất theo. -->
+                                            <Grid Margin="0,14,0,0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="190" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
 
-                                    <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabel}"
-                                               Text="p (số nguyên tố)" />
-                                    <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
-                                             Text="{Binding Key.P, Mode=OneWay}" />
+                                            <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource FieldLabel}"
+                                                       Text="p (số nguyên tố)" />
+                                            <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                                     Text="{Binding P, Mode=OneWay}" />
 
-                                    <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabel}"
-                                               Text="q (số nguyên tố)" />
-                                    <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
-                                             Text="{Binding Key.Q, Mode=OneWay}" />
+                                            <TextBlock Grid.Row="1" Grid.Column="0" Style="{StaticResource FieldLabel}"
+                                                       Text="q (số nguyên tố)" />
+                                            <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                                     Text="{Binding Q, Mode=OneWay}" />
 
-                                    <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabel}"
-                                               Text="n = p × q (modulus)" />
-                                    <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
-                                             Text="{Binding Key.N, Mode=OneWay}" />
+                                            <TextBlock Grid.Row="2" Grid.Column="0" Style="{StaticResource FieldLabel}"
+                                                       Text="n = p × q (modulus)" />
+                                            <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                                     Text="{Binding N, Mode=OneWay}" />
 
-                                    <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource FieldLabel}"
-                                               Text="φ(n) = (p−1)(q−1)" />
-                                    <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
-                                             Text="{Binding Key.Phi, Mode=OneWay}" />
+                                            <TextBlock Grid.Row="3" Grid.Column="0" Style="{StaticResource FieldLabel}"
+                                                       Text="φ(n) = (p−1)(q−1)" />
+                                            <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                                     Text="{Binding Phi, Mode=OneWay}" />
 
-                                    <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource FieldLabel}"
-                                               Text="e (số mũ công khai)" />
-                                    <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
-                                             Text="{Binding Key.E, Mode=OneWay}" />
+                                            <TextBlock Grid.Row="4" Grid.Column="0" Style="{StaticResource FieldLabel}"
+                                                       Text="e (số mũ công khai)" />
+                                            <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                                     Text="{Binding E, Mode=OneWay}" />
 
-                                    <TextBlock Grid.Row="5" Grid.Column="0" Style="{StaticResource FieldLabel}"
-                                               Text="d = e⁻¹ mod φ(n)" />
-                                    <TextBox Grid.Row="5" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
-                                             Text="{Binding Key.D, Mode=OneWay}" />
-                                </Grid>
+                                            <TextBlock Grid.Row="5" Grid.Column="0" Style="{StaticResource FieldLabel}"
+                                                       Text="d = e⁻¹ mod φ(n)" />
+                                            <TextBox Grid.Row="5" Grid.Column="1" Style="{StaticResource ReadOnlyValue}"
+                                                     Text="{Binding D, Mode=OneWay}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ContentControl.ContentTemplate>
+                                </ContentControl>
 
-                                <Border Style="{StaticResource InfoBanner}"
+                                <Border Style="{StaticResource InfoBanner}" Margin="0,14,0,0"
                                         Visibility="{Binding KeyNotes, Converter={StaticResource EmptyToCollapsed}}">
                                     <TextBlock Text="{Binding KeyNotes}" Style="{StaticResource BodyText}" />
                                 </Border>
