@@ -105,9 +105,9 @@ public sealed class RsaViewModel : ViewModelBase
         DecryptSignatureCommand = new RelayCommand(DecryptSignature);
         VerifyCommand = new RelayCommand(Verify);
 
-        // Khởi động với khoá giáo trình 61 × 53: mọi tab dùng được ngay mà không
-        // phải chờ sinh khoá, và các con số khớp ví dụ trong sách.
-        ApplyManualKey();
+        // Không tự tạo khoá lúc mở app. Ô p, q, e đã điền sẵn 61, 53, 17 (khớp ví dụ
+        // giáo trình) nên chỉ cần bấm "Tạo khoá" là có khoá — nhưng bấm hay không là
+        // việc của người dùng, app không tự làm hộ rồi thông báo một việc chưa ai yêu cầu.
     }
 
     public ICommand GenerateKeyCommand { get; }
@@ -204,6 +204,7 @@ public sealed class RsaViewModel : ViewModelBase
     /// <summary>
     /// Giải thích khoá hiện tại bằng lời: mỗi block chứa bao nhiêu byte và có ký
     /// được hay không. Người xem tự bấm thử nên phải nói rõ giới hạn ngay tại đây.
+    /// Chưa có khoá thì nói luôn là chưa có, và nói cần bấm gì.
     /// </summary>
     public string KeyNotes
     {
@@ -211,7 +212,9 @@ public sealed class RsaViewModel : ViewModelBase
         {
             if (_key is null)
             {
-                return string.Empty;
+                return "Chưa có khoá. Hai ô p và q ở trên đã điền sẵn 61 và 53 theo ví dụ "
+                    + "giáo trình — bấm \"Tạo khoá\" là dùng được ngay. Muốn khoá ký được thì "
+                    + "chọn chế độ Tự động, 1024 bit, rồi bấm \"Tạo khoá\".";
             }
 
             string notes =
