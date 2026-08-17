@@ -234,16 +234,30 @@ public sealed class RsaViewModel : ViewModelBase
         }
     }
 
+    /// <summary>Tiến trình sinh khoá.</summary>
+    /// <remarks>
+    /// Ô này không tự hiện hộp thoại: nó nhận cả tiến trình đang chạy, mỗi lần thử một
+    /// số nguyên tố là một lần gán. Chỉ ba mốc kết thúc mới gọi <c>Notifier</c> tay.
+    /// </remarks>
     public string KeyProgress
     {
         get => _keyProgress;
         private set => SetProperty(ref _keyProgress, value);
     }
 
+    /// <remarks>
+    /// Gán giá trị mới là hiện luôn hộp thoại, kể cả khi nội dung trùng lần trước:
+    /// bấm nút hai lần mà chỉ hiện một lần thì lần thứ hai trông như nút bị kẹt.
+    /// Vì vậy <c>Notifier</c> gọi ngoài kết quả trả về của <c>SetProperty</c>.
+    /// </remarks>
     public string KeyError
     {
         get => _keyError;
-        private set => SetProperty(ref _keyError, value);
+        private set
+        {
+            SetProperty(ref _keyError, value);
+            Notifier.Error(value);
+        }
     }
 
     public bool IsGeneratingKey
@@ -279,10 +293,12 @@ public sealed class RsaViewModel : ViewModelBase
 
             SetKey(key);
             KeyProgress = $"Đã sinh khoá {key.KeySizeBits} bit.";
+            Notifier.Info(KeyProgress);
         }
         catch (OperationCanceledException)
         {
             KeyProgress = "Đã huỷ việc sinh khoá.";
+            Notifier.Info(KeyProgress);
         }
         finally
         {
@@ -302,6 +318,7 @@ public sealed class RsaViewModel : ViewModelBase
 
         SetKey(RsaKeyFactory.FromPrimes(p, q, e));
         KeyProgress = $"Đã tạo khoá từ p = {p}, q = {q}.";
+        Notifier.Info(KeyProgress);
     }
 
     /// <summary>
@@ -479,14 +496,22 @@ public sealed class RsaViewModel : ViewModelBase
     public string CipherError
     {
         get => _cipherError;
-        private set => SetProperty(ref _cipherError, value);
+        private set
+        {
+            SetProperty(ref _cipherError, value);
+            Notifier.Error(value);
+        }
     }
 
     /// <summary>Báo đã lưu/tải/sao chép cái gì. Rỗng thì caption tự ẩn.</summary>
     public string CipherFileStatus
     {
         get => _cipherFileStatus;
-        private set => SetProperty(ref _cipherFileStatus, value);
+        private set
+        {
+            SetProperty(ref _cipherFileStatus, value);
+            Notifier.Info(value);
+        }
     }
 
     /// <summary>Block đang chọn trong bảng vết; đổi block thì đổi luôn vết modpow.</summary>
@@ -698,14 +723,22 @@ public sealed class RsaViewModel : ViewModelBase
     public string SignError
     {
         get => _signError;
-        private set => SetProperty(ref _signError, value);
+        private set
+        {
+            SetProperty(ref _signError, value);
+            Notifier.Error(value);
+        }
     }
 
     /// <summary>Báo đã ghi file hay sao chép cái gì. Rỗng thì caption tự ẩn.</summary>
     public string SignFileStatus
     {
         get => _signFileStatus;
-        private set => SetProperty(ref _signFileStatus, value);
+        private set
+        {
+            SetProperty(ref _signFileStatus, value);
+            Notifier.Info(value);
+        }
     }
 
     private void Sign()
@@ -904,13 +937,25 @@ public sealed class RsaViewModel : ViewModelBase
     public string VerifyError
     {
         get => _verifyError;
-        private set => SetProperty(ref _verifyError, value);
+        private set
+        {
+            SetProperty(ref _verifyError, value);
+            Notifier.Error(value);
+        }
     }
 
+    /// <remarks>
+    /// <see cref="Verify"/> gán <see cref="VerifyPassed"/> trước ô này, nên biểu tượng
+    /// của hộp thoại lấy theo giá trị đã đúng của lần xác minh vừa xong.
+    /// </remarks>
     public string VerifyStatus
     {
         get => _verifyStatus;
-        private set => SetProperty(ref _verifyStatus, value);
+        private set
+        {
+            SetProperty(ref _verifyStatus, value);
+            Notifier.Result(value, _verifyPassed);
+        }
     }
 
     /// <summary>Kết quả kiểm tra gần nhất, dùng để chọn màu băng thông báo.</summary>
