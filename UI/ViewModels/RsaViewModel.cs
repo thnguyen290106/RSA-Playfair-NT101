@@ -1,5 +1,8 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Input;
 using RSA_Playfair_NT101.Core;
 using RSA_Playfair_NT101.UI.Common;
@@ -25,6 +28,11 @@ public sealed class RsaViewModel : ViewModelBase
     /// <summary>Số byte header độ dài trong container của <see cref="RsaCipher"/>.</summary>
     private const int LengthHeaderBytes = 4;
 
+    /// <summary>Tên ba file bên gửi xuất ra cho bên nhận.</summary>
+    private const string DataFileName = "filedulieu.signed";
+    private const string SignatureFileName = "chukyso.txt";
+    private const string PublicKeyFileName = "publickey.txt";
+
     // ---- Tab Khoá
     private RsaKeyMode _keyMode = RsaKeyMode.Manual;
     private int _keySizeBits = 1024;
@@ -43,17 +51,34 @@ public sealed class RsaViewModel : ViewModelBase
     private CipherFormat _cipherFormat = CipherFormat.Base64;
     private string _decryptedText = string.Empty;
     private string _cipherError = string.Empty;
+    private string _cipherFileStatus = string.Empty;
     private RsaBlockTrace? _selectedBlock;
     private string _modPowSummary = string.Empty;
 
-    // ---- Tab Chữ ký
-    private string _signMessage = "Chuyển 5.000.000 VND cho Nguyễn Văn A";
+    // ---- Tab Chữ ký, cột trái (bên gửi: có khoá riêng)
+    private string _signMessage = string.Empty;
     private string _signatureText = string.Empty;
     private string _signHashHex = string.Empty;
     private string _signError = string.Empty;
+    private string _signFileStatus = string.Empty;
+
+    // ---- Tab Chữ ký, cột phải (bên nhận: chỉ có dữ liệu, chữ ký và khoá công khai)
+    private string _verifyMessage = string.Empty;
+    private string _verifyHashHex = string.Empty;
+    private string _verifySignatureText = string.Empty;
+    private string _recoveredHashHex = string.Empty;
+    private string _verifyPublicKeyN = string.Empty;
+    private string _verifyPublicKeyE = string.Empty;
+    private string _verifyError = string.Empty;
     private string _verifyStatus = string.Empty;
     private bool _verifyPassed;
     private bool _hasVerified;
+
+    // Ba giá trị vừa đọc được từ ba ô bên phải. Giữ lại để bước "Xác minh" không
+    // phải phân tích lại chuỗi mà bước "Giải mã" ngay trước đó đã phân tích xong.
+    private BigInteger _verifyN;
+    private BigInteger _verifyE;
+    private BigInteger _verifySignature;
 
     public RsaViewModel()
     {
@@ -63,10 +88,22 @@ public sealed class RsaViewModel : ViewModelBase
 
         EncryptCommand = new RelayCommand(Encrypt);
         DecryptCommand = new RelayCommand(Decrypt);
+        LoadPlainTextFileCommand = new RelayCommand(LoadPlainTextFile);
+        SaveCipherFileCommand = new RelayCommand(SaveCipherFile);
+        LoadCipherFileCommand = new RelayCommand(LoadCipherFile);
+        CopyCipherCommand = new RelayCommand(CopyCipher);
 
         SignCommand = new RelayCommand(Sign);
+        LoadMessageFileCommand = new RelayCommand(LoadMessageFile);
+        CopySignatureCommand = new RelayCommand(CopySignature);
+        ExportSignatureFilesCommand = new RelayCommand(ExportSignatureFiles);
+
+        LoadVerifyMessageFileCommand = new RelayCommand(LoadVerifyMessageFile);
+        LoadVerifySignatureFileCommand = new RelayCommand(LoadVerifySignatureFile);
+        LoadPublicKeyFileCommand = new RelayCommand(LoadPublicKeyFile);
+        HashVerifyMessageCommand = new RelayCommand(HashVerifyMessage);
+        DecryptSignatureCommand = new RelayCommand(DecryptSignature);
         VerifyCommand = new RelayCommand(Verify);
-        TamperCommand = new RelayCommand(Tamper);
 
         // Khởi động với khoá giáo trình 61 × 53: mọi tab dùng được ngay mà không
         // phải chờ sinh khoá, và các con số khớp ví dụ trong sách.
@@ -75,11 +112,25 @@ public sealed class RsaViewModel : ViewModelBase
 
     public ICommand GenerateKeyCommand { get; }
     public ICommand CancelKeyCommand { get; }
+
     public ICommand EncryptCommand { get; }
     public ICommand DecryptCommand { get; }
+    public ICommand LoadPlainTextFileCommand { get; }
+    public ICommand SaveCipherFileCommand { get; }
+    public ICommand LoadCipherFileCommand { get; }
+    public ICommand CopyCipherCommand { get; }
+
     public ICommand SignCommand { get; }
+    public ICommand LoadMessageFileCommand { get; }
+    public ICommand CopySignatureCommand { get; }
+    public ICommand ExportSignatureFilesCommand { get; }
+
+    public ICommand LoadVerifyMessageFileCommand { get; }
+    public ICommand LoadVerifySignatureFileCommand { get; }
+    public ICommand LoadPublicKeyFileCommand { get; }
+    public ICommand HashVerifyMessageCommand { get; }
+    public ICommand DecryptSignatureCommand { get; }
     public ICommand VerifyCommand { get; }
-    public ICommand TamperCommand { get; }
 
     /// <summary>Vết từng block khi mã hoá, hiển thị trong bảng.</summary>
     public ObservableCollection<RsaBlockTrace> BlockTraces { get; } = [];
@@ -264,12 +315,14 @@ public sealed class RsaViewModel : ViewModelBase
         CipherText = string.Empty;
         DecryptedText = string.Empty;
         CipherError = string.Empty;
+        CipherFileStatus = string.Empty;
         BlockTraces.Clear();
         SelectedBlock = null;
 
         SignatureText = string.Empty;
         SignHashHex = string.Empty;
         SignError = string.Empty;
+        SignFileStatus = string.Empty;
         VerifyStatus = string.Empty;
         HasVerified = false;
     }
@@ -289,6 +342,31 @@ public sealed class RsaViewModel : ViewModelBase
         => ex is ArgumentException { ParamName: { } paramName } argument
             ? argument.Message.Replace($" (Parameter '{paramName}')", string.Empty)
             : ex.Message;
+
+    /// <summary>
+    /// Chạy một việc có đụng tới file hoặc clipboard, và đưa mọi lỗi ra băng thông báo
+    /// tương ứng thay vì để ngoại lệ làm sập cửa sổ.
+    /// </summary>
+    /// <remarks>
+    /// Chỉ bắt các loại lỗi biết trước của việc đọc/ghi file, phân tích nội dung file
+    /// và mở clipboard — lỗi lập trình vẫn phải nổ ra để còn sửa được. Lỗi luôn được
+    /// hiện lên giao diện, không có nhánh nào nuốt lỗi im lặng.
+    /// </remarks>
+    private static void TryFileAction(Action action, Action<string> showError)
+    {
+        showError(string.Empty);
+
+        try
+        {
+            action();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException
+            or FormatException or InvalidOperationException or ArgumentException
+            or NotSupportedException or ExternalException)
+        {
+            showError(Describe(ex));
+        }
+    }
 
     // ================================================================ Tab Mã hoá
 
@@ -402,6 +480,13 @@ public sealed class RsaViewModel : ViewModelBase
         private set => SetProperty(ref _cipherError, value);
     }
 
+    /// <summary>Báo đã lưu/tải/sao chép cái gì. Rỗng thì caption tự ẩn.</summary>
+    public string CipherFileStatus
+    {
+        get => _cipherFileStatus;
+        private set => SetProperty(ref _cipherFileStatus, value);
+    }
+
     /// <summary>Block đang chọn trong bảng vết; đổi block thì đổi luôn vết modpow.</summary>
     public RsaBlockTrace? SelectedBlock
     {
@@ -472,6 +557,84 @@ public sealed class RsaViewModel : ViewModelBase
         }
     }
 
+    private void LoadPlainTextFile() => TryFileAction(
+        () =>
+        {
+            CipherFileStatus = string.Empty;
+
+            string? text = TextFileDialogs.ReadText(
+                "Chọn file bản rõ",
+                TextFileDialogs.TextFilter,
+                TextFileDialogs.DocumentMaxBytes);
+
+            if (text is not null)
+            {
+                PlainText = text;
+                CipherFileStatus = "Đã tải bản rõ từ file.";
+            }
+        },
+        error => CipherError = error);
+
+    /// <summary>
+    /// Lưu bản mã ra file. Luôn lưu dạng Base64 dù ô đang xem là hex hay thập phân:
+    /// chỉ Base64 mới giải mã lại được.
+    /// </summary>
+    private void SaveCipherFile() => TryFileAction(
+        () =>
+        {
+            CipherFileStatus = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(CipherText))
+            {
+                CipherError = "Chưa có bản mã để lưu. Hãy bấm Mã hoá trước.";
+                return;
+            }
+
+            string? path = TextFileDialogs.WriteText(
+                "Lưu bản mã (Base64)", "banma.txt", TextFileDialogs.TextFilter, CipherText);
+
+            if (path is not null)
+            {
+                CipherFileStatus = $"Đã lưu bản mã vào {path}";
+            }
+        },
+        error => CipherError = error);
+
+    private void LoadCipherFile() => TryFileAction(
+        () =>
+        {
+            CipherFileStatus = string.Empty;
+
+            string? text = TextFileDialogs.ReadText(
+                "Chọn file bản mã (Base64)",
+                TextFileDialogs.TextFilter,
+                TextFileDialogs.NumberMaxBytes);
+
+            if (text is not null)
+            {
+                CipherText = text.Trim();
+                DecryptedText = string.Empty;
+                CipherFileStatus = "Đã tải bản mã từ file.";
+            }
+        },
+        error => CipherError = error);
+
+    private void CopyCipher() => TryFileAction(
+        () =>
+        {
+            CipherFileStatus = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(CipherText))
+            {
+                CipherError = "Chưa có bản mã để sao chép. Hãy bấm Mã hoá trước.";
+                return;
+            }
+
+            Clipboard.SetText(CipherText);
+            CipherFileStatus = "Đã sao chép bản mã (Base64) vào clipboard.";
+        },
+        error => CipherError = error);
+
     /// <summary>
     /// Dựng lại vết bình phương-và-nhân cho block đang chọn. Số bước bằng số bit
     /// của <c>e</c>, nên với e = 65537 chỉ có 17 bước — vừa đủ xem hết.
@@ -500,12 +663,22 @@ public sealed class RsaViewModel : ViewModelBase
             + (trace.Truncated ? " (đã lược bớt các bước ở giữa)" : string.Empty);
     }
 
-    // ================================================================ Tab Chữ ký
+    // ============================================ Tab Chữ ký — cột trái (bên gửi)
 
     public string SignMessage
     {
         get => _signMessage;
-        set => SetProperty(ref _signMessage, value);
+        set
+        {
+            if (SetProperty(ref _signMessage, value))
+            {
+                // Đổi thông điệp thì bản băm và chữ ký cũ không còn thuộc về nó nữa.
+                // Giữ chúng trên màn hình là nói dối về việc vừa ký cái gì.
+                SignHashHex = string.Empty;
+                SignatureText = string.Empty;
+                SignFileStatus = string.Empty;
+            }
+        }
     }
 
     public string SignatureText
@@ -526,37 +699,29 @@ public sealed class RsaViewModel : ViewModelBase
         private set => SetProperty(ref _signError, value);
     }
 
-    public string VerifyStatus
+    /// <summary>Báo đã ghi file hay sao chép cái gì. Rỗng thì caption tự ẩn.</summary>
+    public string SignFileStatus
     {
-        get => _verifyStatus;
-        private set => SetProperty(ref _verifyStatus, value);
-    }
-
-    /// <summary>Kết quả kiểm tra gần nhất, dùng để chọn màu băng thông báo.</summary>
-    public bool VerifyPassed
-    {
-        get => _verifyPassed;
-        private set => SetProperty(ref _verifyPassed, value);
-    }
-
-    /// <summary>Đã bấm kiểm tra lần nào chưa, để chưa bấm thì không hiện băng nào.</summary>
-    public bool HasVerified
-    {
-        get => _hasVerified;
-        private set => SetProperty(ref _hasVerified, value);
+        get => _signFileStatus;
+        private set => SetProperty(ref _signFileStatus, value);
     }
 
     private void Sign()
     {
         SignError = string.Empty;
-        VerifyStatus = string.Empty;
-        HasVerified = false;
+        SignFileStatus = string.Empty;
         SignatureText = string.Empty;
         SignHashHex = string.Empty;
 
         if (_key is null)
         {
             SignError = "Chưa có khoá. Hãy tạo khoá ở tab Khoá trước.";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(SignMessage))
+        {
+            SignError = "Chưa có thông điệp để ký. Hãy nhập vào ô trên hoặc bấm Tải file.";
             return;
         }
 
@@ -572,58 +737,328 @@ public sealed class RsaViewModel : ViewModelBase
         }
     }
 
-    private void Verify()
+    private void LoadMessageFile() => TryFileAction(
+        () =>
+        {
+            string? text = TextFileDialogs.ReadText(
+                "Chọn file cần ký",
+                TextFileDialogs.DocumentFilter,
+                TextFileDialogs.DocumentMaxBytes);
+
+            if (text is not null)
+            {
+                // Setter của SignMessage tự xoá bản băm và chữ ký của nội dung cũ.
+                SignMessage = text;
+                SignFileStatus = "Đã tải nội dung cần ký từ file.";
+            }
+        },
+        error => SignError = error);
+
+    private void CopySignature() => TryFileAction(
+        () =>
+        {
+            SignFileStatus = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(SignatureText))
+            {
+                SignError = "Chưa có chữ ký để sao chép. Hãy bấm Ký số trước.";
+                return;
+            }
+
+            Clipboard.SetText(SignatureText);
+            SignFileStatus = "Đã sao chép chữ ký vào clipboard.";
+        },
+        error => SignError = error);
+
+    /// <summary>
+    /// Ghi ra ba file mà bên nhận cần: nội dung đã ký, chữ ký, và khoá công khai.
+    /// Khoá riêng không nằm trong file nào — đó mới là điểm của chữ ký số.
+    /// </summary>
+    private void ExportSignatureFiles() => TryFileAction(
+        () =>
+        {
+            SignFileStatus = string.Empty;
+
+            if (_key is null || string.IsNullOrWhiteSpace(SignatureText))
+            {
+                SignError = "Chưa có chữ ký để xuất. Hãy bấm Ký số trước.";
+                return;
+            }
+
+            string? folder = TextFileDialogs.PickFolder("Chọn thư mục để lưu 3 file");
+
+            if (folder is null)
+            {
+                return;
+            }
+
+            string[] names = [DataFileName, SignatureFileName, PublicKeyFileName];
+            string[] existing = [.. names.Where(name => File.Exists(Path.Combine(folder, name)))];
+
+            // Ghi đè im lặng lên file của người khác là phá dữ liệu: phải hỏi trước.
+            if (existing.Length > 0
+                && MessageBox.Show(
+                    $"Thư mục này đã có {string.Join(", ", existing)}.\nGhi đè?",
+                    "Ghi đè file?",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            {
+                SignFileStatus = "Đã dừng, không ghi file nào.";
+                return;
+            }
+
+            File.WriteAllText(Path.Combine(folder, DataFileName), SignMessage);
+            File.WriteAllText(Path.Combine(folder, SignatureFileName), SignatureText);
+            File.WriteAllText(
+                Path.Combine(folder, PublicKeyFileName), RsaKeyFile.Format(_key.N, _key.E));
+
+            SignFileStatus = $"Đã ghi 3 file vào {folder}";
+        },
+        error => SignError = error);
+
+    // =========================================== Tab Chữ ký — cột phải (bên nhận)
+
+    // Cột này cố ý không dùng _key: bên nhận chỉ có dữ liệu, chữ ký và khoá công
+    // khai lấy từ ba file. Nếu nó đọc _key thì demo mất ý nghĩa — thành ra một máy
+    // tự ký rồi tự kiểm lại chính mình.
+
+    /// <summary>Dữ liệu bên nhận nhận được, cần băm lại để so.</summary>
+    public string VerifyMessage
     {
-        SignError = string.Empty;
-        VerifyStatus = string.Empty;
-        HasVerified = false;
-
-        if (_key is null)
+        get => _verifyMessage;
+        set
         {
-            SignError = "Chưa có khoá. Hãy tạo khoá ở tab Khoá trước.";
-            return;
+            if (SetProperty(ref _verifyMessage, value))
+            {
+                // Đổi dữ liệu là phải băm lại; đây cũng chính là chỗ làm được demo
+                // "sửa 1 ký tự → xác minh thất bại" mà không cần nút riêng.
+                VerifyHashHex = string.Empty;
+                HasVerified = false;
+            }
         }
+    }
 
-        if (!BigInteger.TryParse(SignatureText?.Trim(), out BigInteger signature))
+    public string VerifyHashHex
+    {
+        get => _verifyHashHex;
+        private set => SetProperty(ref _verifyHashHex, value);
+    }
+
+    public string VerifySignatureText
+    {
+        get => _verifySignatureText;
+        set
         {
-            SignError = "Chữ ký phải là một số nguyên. Hãy ký trước, hoặc dán lại đúng chữ ký.";
-            return;
+            if (SetProperty(ref _verifySignatureText, value))
+            {
+                RecoveredHashHex = string.Empty;
+                HasVerified = false;
+            }
         }
+    }
 
-        try
+    /// <summary>Giá trị băm lấy lại được từ chữ ký: <c>s^e mod n</c>.</summary>
+    public string RecoveredHashHex
+    {
+        get => _recoveredHashHex;
+        private set => SetProperty(ref _recoveredHashHex, value);
+    }
+
+    public string VerifyPublicKeyN
+    {
+        get => _verifyPublicKeyN;
+        set
         {
-            RsaVerificationResult result = RsaSignature.Verify(
-                SignMessage, signature, _key.N, _key.E);
-
-            VerifyPassed = result.IsValid;
-            HasVerified = true;
-            VerifyStatus = result.IsValid
-                ? $"HỢP LỆ — chữ ký khớp với thông điệp. Hash = {result.ExpectedHashHex}"
-                : $"KHÔNG HỢP LỆ — hash của thông điệp là {result.ExpectedHashHex} "
-                    + $"nhưng lấy từ chữ ký ra được {result.RecoveredHashHex}.";
+            if (SetProperty(ref _verifyPublicKeyN, value))
+            {
+                InvalidateRecoveredHash();
+            }
         }
-        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException)
+    }
+
+    public string VerifyPublicKeyE
+    {
+        get => _verifyPublicKeyE;
+        set
         {
-            SignError = Describe(ex);
+            if (SetProperty(ref _verifyPublicKeyE, value))
+            {
+                InvalidateRecoveredHash();
+            }
         }
     }
 
     /// <summary>
-    /// Sửa đúng một ký tự trong thông điệp rồi kiểm tra lại. Đây là phần đáng xem
-    /// nhất của chữ ký số: đổi một ký tự là chữ ký sai ngay, không cần đổi nhiều.
+    /// Nhắc khi chưa có khoá công khai. Không chặn nút nào — người dùng vẫn được tự
+    /// nhập <c>n</c>, <c>e</c> bằng tay, chỉ là nếu thiếu thì nói rõ đang thiếu gì.
     /// </summary>
-    private void Tamper()
+    public string VerifyKeyNotice
+        => string.IsNullOrWhiteSpace(_verifyPublicKeyN)
+            || string.IsNullOrWhiteSpace(_verifyPublicKeyE)
+                ? "Chưa có khoá công khai (public key) — bấm \"Tải public key\" để đọc "
+                    + "publickey.txt, hoặc tự nhập n và e vào hai ô dưới."
+                : string.Empty;
+
+    public string VerifyError
     {
-        if (string.IsNullOrEmpty(SignMessage))
+        get => _verifyError;
+        private set => SetProperty(ref _verifyError, value);
+    }
+
+    public string VerifyStatus
+    {
+        get => _verifyStatus;
+        private set => SetProperty(ref _verifyStatus, value);
+    }
+
+    /// <summary>Kết quả kiểm tra gần nhất, dùng để chọn màu băng thông báo.</summary>
+    public bool VerifyPassed
+    {
+        get => _verifyPassed;
+        private set => SetProperty(ref _verifyPassed, value);
+    }
+
+    /// <summary>Đã bấm xác minh lần nào chưa, để chưa bấm thì không hiện băng nào.</summary>
+    public bool HasVerified
+    {
+        get => _hasVerified;
+        private set => SetProperty(ref _hasVerified, value);
+    }
+
+    private void InvalidateRecoveredHash()
+    {
+        RecoveredHashHex = string.Empty;
+        HasVerified = false;
+        OnPropertyChanged(nameof(VerifyKeyNotice));
+    }
+
+    private void LoadVerifyMessageFile() => TryFileAction(
+        () =>
         {
-            SignMessage = "0";
-        }
-        else
+            string? text = TextFileDialogs.ReadText(
+                "Chọn file dữ liệu nhận được",
+                TextFileDialogs.DocumentFilter,
+                TextFileDialogs.DocumentMaxBytes);
+
+            if (text is not null)
+            {
+                VerifyMessage = text;
+            }
+        },
+        error => VerifyError = error);
+
+    private void LoadVerifySignatureFile() => TryFileAction(
+        () =>
         {
-            char last = SignMessage[^1];
-            SignMessage = SignMessage[..^1] + (last == '0' ? '9' : '0');
+            string? text = TextFileDialogs.ReadText(
+                "Chọn file chữ ký số",
+                TextFileDialogs.TextFilter,
+                TextFileDialogs.NumberMaxBytes);
+
+            if (text is not null)
+            {
+                VerifySignatureText = text.Trim();
+            }
+        },
+        error => VerifyError = error);
+
+    private void LoadPublicKeyFile() => TryFileAction(
+        () =>
+        {
+            string? text = TextFileDialogs.ReadText(
+                "Chọn file khoá công khai",
+                TextFileDialogs.TextFilter,
+                TextFileDialogs.NumberMaxBytes);
+
+            if (text is null)
+            {
+                return;
+            }
+
+            (BigInteger n, BigInteger e) = RsaKeyFile.Parse(text);
+            VerifyPublicKeyN = n.ToString();
+            VerifyPublicKeyE = e.ToString();
+        },
+        error => VerifyError = error);
+
+    private void HashVerifyMessage()
+    {
+        VerifyError = string.Empty;
+        HasVerified = false;
+        TryHashVerifyMessage();
+    }
+
+    private void DecryptSignature()
+    {
+        VerifyError = string.Empty;
+        HasVerified = false;
+        TryDecryptSignature();
+    }
+
+    /// <summary>
+    /// Chạy đủ ba bước của bên nhận rồi phán quyết. Bấm riêng "Băm dữ liệu" và
+    /// "Giải mã" chỉ để xem từng bước; bấm "Xác minh" một mình vẫn điền cả hai ô.
+    /// </summary>
+    private void Verify()
+    {
+        VerifyError = string.Empty;
+        VerifyStatus = string.Empty;
+        HasVerified = false;
+
+        if (!TryHashVerifyMessage() || !TryDecryptSignature())
+        {
+            return;
         }
 
-        Verify();
+        // Phán quyết vẫn để Core.RsaSignature.Verify đưa ra — nó so trên số nguyên,
+        // không so hai chuỗi hex đang hiện trên màn hình.
+        RsaVerificationResult result = RsaSignature.Verify(
+            VerifyMessage, _verifySignature, _verifyN, _verifyE);
+
+        VerifyPassed = result.IsValid;
+        HasVerified = true;
+        VerifyStatus = result.IsValid
+            ? "HỢP LỆ — chữ ký khớp với dữ liệu nhận được."
+            : "KHÔNG HỢP LỆ — bản băm tính lại và bản băm lấy từ chữ ký không khớp.";
+    }
+
+    /// <summary>Băm lại dữ liệu nhận được. Trả về <c>false</c> khi chưa có dữ liệu.</summary>
+    private bool TryHashVerifyMessage()
+    {
+        if (string.IsNullOrEmpty(VerifyMessage))
+        {
+            VerifyHashHex = string.Empty;
+            VerifyError = "Chưa có dữ liệu để băm. Hãy bấm \"Tải file dữ liệu\" "
+                + "hoặc gõ vào ô dữ liệu nhận được.";
+            return false;
+        }
+
+        VerifyHashHex = Convert.ToHexString(RsaSignature.ComputeHash(VerifyMessage));
+        return true;
+    }
+
+    /// <summary>
+    /// Đọc <c>n</c>, <c>e</c>, chữ ký từ ba ô rồi lấy lại giá trị băm bằng khoá công
+    /// khai. Trả về <c>false</c> và điền <see cref="VerifyError"/> khi ô nào sai.
+    /// </summary>
+    private bool TryDecryptSignature()
+    {
+        RecoveredHashHex = string.Empty;
+
+        try
+        {
+            _verifyN = ParseBigInteger(VerifyPublicKeyN, "n");
+            _verifyE = ParseBigInteger(VerifyPublicKeyE, "e");
+            _verifySignature = ParseBigInteger(VerifySignatureText, "chữ ký");
+
+            RecoveredHashHex = RsaSignature.RecoverHashHex(_verifySignature, _verifyN, _verifyE);
+            return true;
+        }
+        catch (Exception ex) when (ex is FormatException or ArgumentException
+            or InvalidOperationException)
+        {
+            VerifyError = Describe(ex);
+            return false;
+        }
     }
 }
