@@ -18,9 +18,6 @@ public sealed class PlayfairMatrix
     /// <summary>Bảng chữ của ma trận 6×6: 26 chữ cái + 10 chữ số, đúng 36 ô.</summary>
     public const string Alphabet6x6 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    /// <summary>Ký tự đệm mặc định, theo thông lệ của Playfair.</summary>
-    public const char DefaultFiller = 'X';
-
     private readonly Dictionary<char, int> _positions;
     private readonly char[] _cells;
 
@@ -50,8 +47,8 @@ public sealed class PlayfairMatrix
     /// <summary>Ma trận này có gộp <c>J</c> vào <c>I</c> hay không.</summary>
     public bool MergesIJ => Variant == PlayfairVariant.Grid5x5MergeIJ;
 
-    /// <summary>Ký tự đệm chính.</summary>
-    public char Filler => DefaultFiller;
+    /// <summary>Ký tự đệm chính, theo thông lệ của Playfair.</summary>
+    public char Filler => 'X';
 
     /// <summary>
     /// Ký tự đệm thay thế, dùng khi chính ký tự cần đệm là <see cref="Filler"/>.
@@ -64,7 +61,7 @@ public sealed class PlayfairMatrix
     public char FillerFallback => Variant == PlayfairVariant.Grid5x5MergeIJ ? 'Q' : '9';
 
     /// <summary>Bảng chữ tương ứng với một biến thể.</summary>
-    public static string AlphabetOf(PlayfairVariant variant) =>
+    private static string AlphabetOf(PlayfairVariant variant) =>
         variant == PlayfairVariant.Grid5x5MergeIJ ? Alphabet5x5 : Alphabet6x6;
 
     /// <summary>
@@ -112,9 +109,6 @@ public sealed class PlayfairMatrix
     /// nếu là 5×5, rồi bỏ mọi ký tự không có trong bảng chữ.
     /// </summary>
     public string Normalize(string text) => NormalizeTo(text, Alphabet, MergesIJ);
-
-    /// <summary>Ma trận có chứa ký tự này hay không. Ký tự phải đã được chuẩn hoá.</summary>
-    public bool Contains(char ch) => _positions.ContainsKey(ch);
 
     /// <summary>Chỉ số trải phẳng của ký tự, hoặc <c>-1</c> nếu không có trong ma trận.</summary>
     public int IndexOf(char ch) => _positions.TryGetValue(ch, out int index) ? index : -1;
