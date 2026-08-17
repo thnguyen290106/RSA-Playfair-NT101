@@ -59,15 +59,9 @@
                                    Text="Mã hoá từng cặp ký tự dựa trên vị trí của chúng trong một ma trận chữ sinh từ khoá." />
 
                         <TextBlock Style="{StaticResource BodyText}" Margin="0,12,0,0"
-                                   Text="• Ma trận 5×5 (gộp I/J) và 6×6 (A–Z + 0–9)&#x0a;• Xem từng cặp ký tự đi qua quy tắc nào&#x0a;• Phân tích tần suất cặp ký tự để thấy điểm yếu" />
+                                   Text="• Ma trận 5×5 (gộp I/J) và 6×6 (A–Z + 0–9)&#x0a;• Xem từng cặp ký tự đi qua quy tắc nào&#x0a;• Nói rõ những gì bị mất: ký tự bỏ đi, J gộp vào I, ký tự đệm" />
 
-                        <Border Style="{StaticResource InfoBanner}" Margin="0,14,0,0">
-                            <TextBlock Style="{StaticResource BodyText}"
-                                       Foreground="{StaticResource TextSecondaryBrush}"
-                                       Text="Phần Playfair chưa được cài đặt trong bản này." />
-                        </Border>
-
-                        <Button Content="Mở Playfair" Style="{StaticResource GhostButton}"
+                        <Button Content="Mở Playfair" Style="{StaticResource PrimaryButton}"
                                 Command="{Binding OpenPlayfairCommand}"
                                 HorizontalAlignment="Left" Margin="0,18,0,0" />
                     </StackPanel>
