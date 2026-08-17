@@ -11,22 +11,6 @@
              FontFamily="{StaticResource UiFont}">
 
     <UserControl.Resources>
-        <Style x:Key="FieldLabel" TargetType="TextBlock" BasedOn="{StaticResource CaptionText}">
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Margin" Value="0,0,10,0" />
-            <Setter Property="VerticalAlignment" Value="Center" />
-        </Style>
-
-        <Style x:Key="ReadOnlyValue" TargetType="TextBox" BasedOn="{StaticResource MonoBox}">
-            <Setter Property="IsReadOnly" Value="True" />
-            <Setter Property="MaxHeight" Value="76" />
-            <Setter Property="Margin" Value="0,0,0,8" />
-        </Style>
-
-        <Style x:Key="ErrorText" TargetType="TextBlock" BasedOn="{StaticResource BodyText}">
-            <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
-        </Style>
-
         <!-- Ô của ma trận: nền và viền đổi theo trạng thái tô sáng của cặp đang chọn. -->
         <Style x:Key="MatrixCellBox" TargetType="Border">
             <Setter Property="Width" Value="40" />
@@ -72,18 +56,6 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-        </DataTemplate>
-
-        <!-- Chú thích màu, dùng ở cả hai tab cho khỏi phải đoán màu nào là gì. -->
-        <DataTemplate x:Key="MatrixLegendTemplate">
-            <TextBlock Style="{StaticResource CaptionText}" Margin="2,8,0,0" TextWrapping="Wrap">
-                <Run Text="■" Foreground="{StaticResource PrimaryBrush}" />
-                <Run Text="ô của cặp đi vào" />
-                <Run Text="   ■" Foreground="{StaticResource AccentBrush}" />
-                <Run Text="ô của cặp đi ra" />
-                <Run Text="   ■" Foreground="{StaticResource WarningBrush}" />
-                <Run Text="vừa vào vừa ra" />
-            </TextBlock>
         </DataTemplate>
     </UserControl.Resources>
     <DockPanel Margin="32,26,32,20">
@@ -224,7 +196,15 @@
 
                                     <StackPanel Grid.Column="1" Margin="18,0,0,0">
                                         <ContentControl Content="{Binding}" ContentTemplate="{StaticResource MatrixTemplate}" />
-                                        <ContentControl Content="{Binding}" ContentTemplate="{StaticResource MatrixLegendTemplate}" />
+                                        <!-- Chú thích màu, để khỏi phải đoán màu nào là gì. -->
+                                        <TextBlock Style="{StaticResource CaptionText}" Margin="2,8,0,0" TextWrapping="Wrap">
+                                            <Run Text="■" Foreground="{StaticResource PrimaryBrush}" />
+                                            <Run Text="ô của cặp đi vào" />
+                                            <Run Text="   ■" Foreground="{StaticResource AccentBrush}" />
+                                            <Run Text="ô của cặp đi ra" />
+                                            <Run Text="   ■" Foreground="{StaticResource WarningBrush}" />
+                                            <Run Text="vừa vào vừa ra" />
+                                        </TextBlock>
                                     </StackPanel>
                                 </Grid>
 
