@@ -35,6 +35,7 @@ public static class PlayfairCipher
         ArgumentNullException.ThrowIfNull(key);
 
         PlayfairMatrix matrix = PlayfairMatrix.Build(key, variant);
+        string upper = TextNormalizer.ToPlainUpper(text);
         string normalized = matrix.Normalize(text);
         List<string> warnings = [];
 
@@ -46,7 +47,7 @@ public static class PlayfairCipher
 
         // Đếm phần bị bỏ trên chuỗi đã in hoa và bỏ dấu: lúc đó độ dài chỉ còn giảm vì
         // ký tự bị loại khỏi bảng, còn J → I là phép đổi chỗ nên không đổi độ dài.
-        int dropped = TextNormalizer.ToPlainUpper(text).Length - normalized.Length;
+        int dropped = upper.Length - normalized.Length;
         if (dropped > 0)
         {
             warnings.Add($"Đã bỏ {dropped} ký tự không có trong ma trận (khoảng trắng, dấu câu, ký tự lạ"
@@ -54,7 +55,7 @@ public static class PlayfairCipher
                 + "). Giải mã sẽ không lấy lại được chúng.");
         }
 
-        if (matrix.MergesIJ && TextNormalizer.ToPlainUpper(text).Contains('J'))
+        if (matrix.MergesIJ && upper.Contains('J'))
         {
             warnings.Add("Ma trận 5×5 gộp I/J: mọi chữ J đã thành I. Giải mã sẽ trả về I, "
                 + "người đọc phải tự suy ra chữ nào vốn là J.");
@@ -63,7 +64,7 @@ public static class PlayfairCipher
         if (normalized.Length == 0)
         {
             warnings.Add("Sau chuẩn hoá không còn ký tự nào để xử lý.");
-            return new PlayfairResult(text, normalized, string.Empty, string.Empty, [], [], warnings);
+            return new PlayfairResult(normalized, string.Empty, string.Empty, [], [], warnings);
         }
 
         List<(char A, char B, bool Filler)> pairs;
@@ -88,11 +89,7 @@ public static class PlayfairCipher
                     + "Kiểm tra lại bản mã đã dán đủ chưa.");
             }
 
-            pairs = new List<(char, char, bool)>(normalized.Length / 2);
-            for (int index = 0; index < normalized.Length; index += 2)
-            {
-                pairs.Add((normalized[index], normalized[index + 1], false));
-            }
+            pairs = [.. normalized.Chunk(2).Select(chunk => (chunk[0], chunk[1], false))];
 
             fillerPositions = [];
             if (pairs.Exists(pair => pair.A == pair.B))
@@ -173,7 +170,7 @@ public static class PlayfairCipher
                 + " (đếm từ 1). Ứng dụng không tự xoá vì không phân biệt được ký tự đệm với ký tự thật.");
         }
 
-        return new PlayfairResult(text, normalized, JoinPairs(pairs), result, steps, suspects, warnings);
+        return new PlayfairResult(normalized, JoinPairs(pairs), result, steps, suspects, warnings);
     }
 
     /// <summary>

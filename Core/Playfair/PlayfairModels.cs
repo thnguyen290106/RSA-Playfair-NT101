@@ -37,7 +37,9 @@ public enum DigramRule
 /// </summary>
 /// <remarks>
 /// Bản ghi này tồn tại để hiển thị: ứng dụng phải trả lời được "hai ký tự này
-/// đến từ đâu", nên phải giữ cả toạ độ trước và sau, không chỉ kết quả.
+/// đến từ đâu", nên phải giữ cả toạ độ trước và sau, không chỉ kết quả. Tám tham số
+/// <c>Row*</c>/<c>Col*</c> là toạ độ hàng và cột, đếm từ 0: không có tiền tố
+/// <c>Out</c> là ô đi vào, có <c>Out</c> là ô đi ra.
 /// </remarks>
 /// <param name="Index">Số thứ tự cặp, bắt đầu từ 1.</param>
 /// <param name="InA">Ký tự thứ nhất đi vào.</param>
@@ -45,14 +47,6 @@ public enum DigramRule
 /// <param name="OutA">Ký tự thứ nhất đi ra.</param>
 /// <param name="OutB">Ký tự thứ hai đi ra.</param>
 /// <param name="Rule">Quy tắc đã áp dụng cho cặp này.</param>
-/// <param name="RowA">Hàng của <paramref name="InA"/>, đếm từ 0.</param>
-/// <param name="ColA">Cột của <paramref name="InA"/>, đếm từ 0.</param>
-/// <param name="RowB">Hàng của <paramref name="InB"/>, đếm từ 0.</param>
-/// <param name="ColB">Cột của <paramref name="InB"/>, đếm từ 0.</param>
-/// <param name="OutRowA">Hàng của <paramref name="OutA"/>, đếm từ 0.</param>
-/// <param name="OutColA">Cột của <paramref name="OutA"/>, đếm từ 0.</param>
-/// <param name="OutRowB">Hàng của <paramref name="OutB"/>, đếm từ 0.</param>
-/// <param name="OutColB">Cột của <paramref name="OutB"/>, đếm từ 0.</param>
 /// <param name="FillerInserted">
 /// Ký tự thứ hai của cặp là ký tự đệm do ứng dụng chèn, không phải của người dùng.
 /// Chỉ xảy ra khi mã hoá.
@@ -102,7 +96,6 @@ public sealed record PlayfairStep(
 /// Kết quả một lần mã hoá hoặc giải mã Playfair, kèm mọi thứ cần để hiện lại
 /// đường đi và để nói thẳng những gì đã mất.
 /// </summary>
-/// <param name="RawInput">Văn bản người dùng đưa vào, chưa sửa gì.</param>
 /// <param name="Normalized">
 /// Văn bản sau chuẩn hoá: bỏ dấu, in hoa, bỏ mọi ký tự không có trong ma trận.
 /// </param>
@@ -124,7 +117,6 @@ public sealed record PlayfairStep(
 /// bao nhiêu ký tự đệm. Không có cái nào là lỗi — chúng là tính chất của thuật toán.
 /// </param>
 public sealed record PlayfairResult(
-    string RawInput,
     string Normalized,
     string PairedText,
     string Output,
