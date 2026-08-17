@@ -308,6 +308,10 @@ public sealed class RsaViewModel : ViewModelBase
     /// Nhận khoá mới và xoá mọi kết quả sinh ra từ khoá cũ. Giữ lại bản mã cũ sẽ
     /// khiến lần giải mã sau báo lỗi mà người dùng không hiểu vì sao.
     /// </summary>
+    /// <remarks>
+    /// Không đụng tới cột phải của tab chữ ký: nó xác minh bằng khoá công khai trong
+    /// ô nhập của chính nó, không dùng khoá này, nên kết quả ở đó vẫn còn đúng.
+    /// </remarks>
     private void SetKey(RsaKeyPair key)
     {
         Key = key;
@@ -323,8 +327,6 @@ public sealed class RsaViewModel : ViewModelBase
         SignHashHex = string.Empty;
         SignError = string.Empty;
         SignFileStatus = string.Empty;
-        VerifyStatus = string.Empty;
-        HasVerified = false;
     }
 
     private static BigInteger ParseBigInteger(string text, string label)
