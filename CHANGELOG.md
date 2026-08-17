@@ -6,6 +6,32 @@ trong `git log`.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Project không đánh số
 phiên bản (đây là bài tập, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
 
+## 2026-08-17 — Dọn phần Playfair vừa viết
+
+### Thay đổi
+
+- **Ba kiểu XAML dùng chung dời vào `UI/Theme/Controls.xaml`:** `FieldLabel`, `ReadOnlyValue`,
+  `ErrorText`. Trước đó `RsaView.xaml` và `PlayfairView.xaml` mỗi file giữ một bản sao **y nguyên
+  từng dòng** — hai màn hình phải giống nhau nhưng lại có hai nguồn sự thật, sửa một bên là lệch.
+- `MatrixLegendTemplate` (`DataTemplate` không có binding nào, dùng đúng một chỗ) được viết thẳng
+  tại chỗ dùng. Comment của nó nói "dùng ở cả hai tab" — không đúng.
+
+### Xoá
+
+- `PlayfairResult.RawInput` — không có chỗ nào đọc. Văn bản gốc vẫn nằm trong ô nhập của người dùng.
+- `PlayfairMatrix.Contains` — chỉ có test gọi, mà `IndexOf(ch) >= 0` đã trả lời đúng câu đó.
+- `PlayfairMatrix.DefaultFiller` — một `const` chỉ để `Filler` trả về, dùng đúng một lần.
+- `PlayfairMatrix.AlphabetOf` chuyển thành `private`: không call site nào ngoài class.
+
+### Ghi chú
+
+- Vòng `for` bước 2 dựng cặp khi giải mã đổi thành `normalized.Chunk(2)` — `Enumerable.Chunk` làm
+  đúng việc đó và không phải tự cộng chỉ số.
+- `TextNormalizer.ToPlainUpper(text)` bị gọi hai lần cho cùng một chuỗi (một lần đếm ký tự bị bỏ,
+  một lần tìm chữ `J`); giờ chỉ chuẩn hoá một lượt.
+- Không đổi hành vi nào: `dotnet test` vẫn **521 pass**, trong đó `UiSmokeTests` soi mọi
+  `BindingExpression` nên việc dời kiểu XAML mà sai tên là test đỏ ngay.
+
 ## 2026-08-17 — Playfair, hoàn chỉnh cả hai chiều
 
 ### Thêm
