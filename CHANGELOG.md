@@ -6,6 +6,31 @@ trong `git log`.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Project không đánh số
 phiên bản (đây là bài tập, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
 
+## 2026-08-17 — Chia `Core/` thành thư mục con
+
+### Thay đổi
+
+- **Bảy file phẳng trong `Core/` giờ nằm theo nhóm việc.** Không có dòng code nào thay đổi, chỉ là
+  đường dẫn file:
+
+  | Thư mục | File | Vì sao |
+  |---|---|---|
+  | `Core/Key_Generation/` | `PrimeGenerator.cs`, `RsaKeyFactory.cs`, `RsaKeyFile.cs` | Cả vòng đời của một khoá: sinh `p`, `q` → dẫn xuất `n`, `φ(n)`, `d` → lưu ra file → tải lại |
+  | `Core/Rsa/` | `RsaCipher.cs`, `RsaSignature.cs`, `RsaModels.cs` | Hai phép RSA của app, cộng với `RsaKeyPair`/`RsaBlockTrace` mà cả hai bên dùng chung |
+  | `Core/` (giữ nguyên) | `BigIntegerMath.cs` | Cả hai nhóm trên đều gọi nó, nên nó là tầng nguyên thuỷ ở dưới chứ không thuộc bên nào |
+
+- `Core/Playfair/` để trống, chờ phần Playfair. Git không theo dõi thư mục rỗng nên nó chỉ tồn tại ở
+  máy cho tới khi có file đầu tiên.
+
+### Ghi chú
+
+- **Namespace không đổi**, cả `Core/` vẫn là `RSA_Playfair_NT101.Core`. C# không bắt namespace khớp
+  thư mục; giữ phẳng thì không file nào ở `UI/` hay project test phải thêm `using`, nên mỗi lần dời
+  file là một commit đổi tên thuần và tự build được. Đổi namespace theo thư mục là việc riêng, làm sau
+  cũng được.
+- `dotnet test` vẫn 391 pass sau khi dời: SDK glob quét `**/*.cs` nên không có file `.csproj` nào phải
+  sửa.
+
 ## 2026-08-17 — Lưu khoá ra file và tải lại
 
 ### Thêm
