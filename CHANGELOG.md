@@ -6,6 +6,59 @@ trong `git log`.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Project không đánh số
 phiên bản (đây là bài tập, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
 
+## 2026-08-17 — Playfair, hoàn chỉnh cả hai chiều
+
+### Thêm
+
+- **`Core/Playfair/` — bốn file, không tham chiếu WPF như phần còn lại của `Core/`:**
+
+  | File | Việc |
+  |---|---|
+  | `TextNormalizer.cs` | Bỏ dấu tiếng Việt và in hoa. `Đ`/`đ` phải thay tay trước vì chúng không phân rã được bằng `FormD`; in hoa dùng `ToUpperInvariant` vì `ToUpper()` theo locale Thổ biến `i` thành `İ` |
+  | `PlayfairModels.cs` | `PlayfairVariant`, `DigramRule`, `PlayfairStep`, `PlayfairResult` |
+  | `PlayfairMatrix.cs` | Sinh ma trận từ khoá, tra ô ↔ toạ độ, chuẩn hoá văn bản theo bảng chữ của biến thể |
+  | `PlayfairCipher.cs` | Chia cặp, chèn ký tự đệm, ba quy tắc, vết từng cặp, cảnh báo mất thông tin |
+
+- **Hai biến thể ma trận.** 5×5 gộp `J` vào `I` và bỏ chữ số (đúng ví dụ giáo trình); 6×6 có đủ 26
+  chữ cái + 10 chữ số nên giữ được cả `J` và mã hoá được chữ số.
+- **Màn hình Playfair, hai tab.** Tab 1 là khoá và ma trận; tab 2 là mã hoá/giải mã, kết quả từng
+  bước (sau chuẩn hoá → đã chia cặp → kết quả) và bảng vết từng cặp. Bảng vết nằm cạnh một bản ma
+  trận thứ hai: chọn một dòng thì đúng các ô của cặp đó sáng lên — ô đi vào, ô đi ra, và màu thứ ba
+  cho ô vừa vào vừa ra (hai chữ cạnh nhau trên cùng hàng là có thật).
+- **Một ô nhập cho cả hai chiều**, kèm nút "Đưa kết quả sang ô nhập". Playfair đối xứng và bản mã của
+  nó vẫn là chữ cái, nên tách hai ô nhập chỉ làm người dùng phải copy qua lại.
+- **Băng cảnh báo nói thẳng phần thông tin bị mất:** đã bỏ bao nhiêu ký tự, đã gộp `I/J`, đã chèn bao
+  nhiêu ký tự đệm, và khi khoá không còn ký tự nào dùng được thì nói rõ là khoá mất tác dụng chứ
+  không im lặng mã hoá bằng bảng chữ theo thứ tự.
+
+### Thay đổi
+
+- **Trang chủ**: bỏ băng "Phần Playfair chưa được cài đặt trong bản này", nút "Mở Playfair" thành nút
+  chính như nút RSA.
+- Gạch đầu dòng "Phân tích tần suất cặp ký tự" trên trang chủ được thay bằng thứ app làm thật (nói rõ
+  những gì bị mất) — xem *Ghi chú*.
+
+### Ghi chú
+
+- **Ba cái bẫy đã trả giá để biết**, mỗi cái có test cố định lại:
+  - `J → I` phải làm **trước** khi bỏ ký tự lặp. Làm ngược thì khoá `JAIL` giữ cả `J` và `I`, ma trận
+    có hai ô `I` và thiếu một chữ khác — sai từ ô đầu.
+  - Ký tự đệm cho cặp `XX` phải đổi sang `Q` (5×5) hoặc `9` (6×6). Chèn `X` vào giữa `XX` vẫn ra một
+    cặp trùng chữ, tức là không giải quyết được gì.
+  - Lui một bước ở biên ma trận phải viết `+ Size − 1`: trong C# `(0 − 1) % 5` ra `−1`, không ra `4`.
+- **Giải mã không tự xoá ký tự đệm**, chỉ đánh dấu vị trí *nghi* là ký tự đệm. Không có cách nào phân
+  biệt chữ `X` thật với chữ `X` do máy chèn, nên xoá hộ là đoán — và đoán sai thì bản rõ hiện ra sai
+  mà không ai biết. Vì vậy `Decrypt(Encrypt("HELLO"))` trả `HELXLO`, đúng như test ghi lại.
+- **Bản mã có số ký tự lẻ bị từ chối** kèm lời giải thích, không tự thêm một ký tự cho chẵn.
+- **Phân tích tần suất cặp ký tự không làm.** Muốn nói "cặp này bất thường" thì phải có bảng tần suất
+  digram tiếng Anh làm mốc; số liệu đó không có trong dự án và bịa ra một bảng thì con số hiện lên
+  không dựa trên gì. Điểm yếu của Playfair được nói bằng chữ thay vì bằng biểu đồ.
+- **Sửa một lỗi cũ trong lúc viết test:** `PlayfairMatrix.NormalizedKey` trả khoá *chưa* bỏ ký tự lặp
+  trong khi tài liệu của nó hứa ngược lại. Giờ nó lấy thẳng từ các ô đã điền, nên không thể lệch với
+  ma trận thật.
+- `dotnet test`: **521 pass**, trong đó `UiSmokeTests` đi thêm một vòng Playfair (mã hoá, giải mã lại,
+  bản mã lẻ ký tự, đổi biến thể) ở cửa sổ 1000 × 640.
+
 ## 2026-08-17 — Chia `Core/` thành thư mục con
 
 ### Thay đổi
