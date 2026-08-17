@@ -6,6 +6,29 @@ trong `git log`.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Project không đánh số
 phiên bản (đây là bài tập, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
 
+## 2026-08-17 — Mọi thông báo hiện thêm bằng hộp thoại
+
+### Thêm
+
+- **Mọi thông báo giờ hiện đồng thời hai chỗ: băng thông báo trong tab như cũ, và một hộp thoại
+  (`MessageBox`).** Băng thông báo nằm trong tab nên người đang xem tab khác không thấy nó; hộp
+  thoại thì chắc chắn thấy. Không băng nào bị bỏ đi — băng vẫn còn đó để đọc lại sau khi bấm OK.
+  Áp dụng cho: lỗi sinh khoá, lỗi và trạng thái file của tab mã hoá, lỗi và trạng thái file của cột
+  bên gửi, lỗi của cột bên nhận, và phán quyết HỢP LỆ / KHÔNG HỢP LỆ.
+- Ba mốc kết thúc của việc sinh khoá cũng có hộp thoại: đã sinh xong khoá tự động, đã tạo khoá từ
+  `p`, `q` nhập tay, và đã huỷ giữa lúc sinh.
+- `UI.Common.Notifier` — chỗ duy nhất gọi `MessageBox`, có cờ `Enabled` để test tắt hộp thoại. Hộp
+  thoại modal chặn thread giao diện, nên không tắt thì `UiSmokeTests` treo tới lúc hết giờ.
+
+### Ghi chú
+
+- Ô tiến trình sinh khoá **không** hiện hộp thoại theo từng bước: mỗi lần thử một số nguyên tố là
+  một lần cập nhật, hiện hết thì thành hàng chục hộp thoại cho một lần bấm.
+- Nhắc "Chưa có khoá công khai" ở cột bên nhận vẫn chỉ là băng vàng: nó bám theo nội dung hai ô
+  `n`, `e` nên nếu hiện hộp thoại thì sẽ bật lên giữa lúc người dùng đang gõ.
+- Mã hoá, giải mã và ký số khi thành công vẫn không có thông báo nào — kết quả hiện ngay trong ô
+  bên dưới. Đây là hành vi cũ, không phải thứ vừa bỏ đi.
+
 ## 2026-08-17 — Tab chữ ký số chia hai bên, thêm trao đổi qua file
 
 ### Thêm
