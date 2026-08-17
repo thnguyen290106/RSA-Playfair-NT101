@@ -6,6 +6,41 @@ trong `git log`.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Project không đánh số
 phiên bản (đây là bài tập, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
 
+## 2026-08-17 — Lưu khoá ra file và tải lại
+
+### Thêm
+
+- **Hai nút "Lưu khoá ra file" / "Tải khoá từ file" ở tab 1 · Khoá.** Trước đây khoá chỉ sống trong bộ
+  nhớ: mã hoá, bấm "Lưu bản mã", đóng app — mở lại thì `banma.txt` còn đó nhưng khoá đã tạo ra nó thì
+  không, và bấm Giải mã chỉ nhận được thông báo "không khớp khoá". Đường duy nhất để lấy lại khoá cũ là
+  chép tay `p`, `q` (155 chữ số với khoá 1024 bit) vào chế độ Thủ công. Giờ nó là hai cái nút.
+- **Định dạng `privatekey.txt`** — `Core/RsaKeyFile.FormatPrivate` / `ParsePrivate`. File chỉ chứa ba
+  số `p`, `q`, `e`; `n`, `φ(n)` và `d` được `RsaKeyFactory.FromPrimes` tính lại khi tải nên không ghi
+  vào file. Ghi thêm chúng là tạo nguồn sự thật thứ hai: sửa tay một dòng là các số không còn khớp mà
+  không biết nên tin dòng nào. `n` vẫn có mặt ở **dòng chú thích** để người xem ghép được file này với
+  `publickey.txt` tương ứng.
+- **Chặn số nguyên tố quá lớn khi đọc file** — `RsaKeyFile.MaxPrimeBits = 2048`. File khoá được đọc
+  tối đa 64 KB, tức chứa được một con số ~212.000 bit, mà `FromPrimes` thử số nguyên tố bằng
+  Miller–Rabin 40 nhân chứng ngay trên thread giao diện: không chặn thì cửa sổ đứng im rất lâu trước
+  khi báo lỗi. Giới hạn là gấp đôi `p`, `q` của khoá 2048 bit — khoá lớn nhất app sinh được.
+
+### Ghi chú
+
+- **File này chứa khoá riêng, và đó là chủ ý.** Ai có `p` và `q` là có `d`. Nên file có ba dòng cảnh
+  báo BÍ MẬT ở đầu, nút và phần chú thích trong app nói rõ phải giữ nó như mật khẩu, và `publickey.txt`
+  mới là file đem đi. Đây cũng là một điểm dạy được: khoá riêng là một file phải giữ kín, đúng như
+  `id_rsa` mặc định của SSH.
+- Không đặt mật khẩu cho file (PBKDF2 + AES): app dạy RSA, không phải quản lý khoá. Cảnh báo bằng chữ,
+  giống hành vi mặc định của `ssh-keygen`.
+- Không phải PEM/PKCS#8: cả project cố ý dùng văn bản đọc được bằng Notepad.
+- Tải khoá mới xoá bản mã và chữ ký của khoá cũ đang hiện trên màn hình (dùng chung `SetKey` với hai
+  đường có khoá kia), vì chúng thuộc về một khoá khác.
+- Việc kiểm tra chia hai tầng, không làm hai lần: `ParsePrivate` chỉ kiểm "có mặt / là số nguyên /
+  trong khoảng bit hợp lý" → `FormatException`; còn `p ≠ q`, `p` và `q` có thật là số nguyên tố,
+  `gcd(e, φ(n)) = 1` là việc của `FromPrimes` → `ArgumentException`. Người dùng thấy thông báo như nhau.
+- Tab 2 · Mã hoá có thêm một dòng nói thẳng rằng khoá sinh tự động mất khi đóng app, để người đang
+  đứng ở tab đó biết phải quay lại tab 1 lưu khoá.
+
 ## 2026-08-17 — Mở app không tự tạo khoá nữa
 
 ### Sửa
