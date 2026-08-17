@@ -6,6 +6,24 @@ trong `git log`.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Project không đánh số
 phiên bản (đây là bài tập, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
 
+## 2026-08-17 — Mở app không tự tạo khoá nữa
+
+### Sửa
+
+- **Mở app không còn tự tạo khoá 61 × 53.** Trước đây constructor của `RsaViewModel` tạo sẵn khoá từ
+  hai số điền mặc định, nên sau khi thêm hộp thoại thì vừa mở app đã bật lên "Đã tạo khoá từ p = 61,
+  q = 53." — một việc chưa ai yêu cầu. Giờ hai ô `p`, `q`, `e` vẫn điền sẵn 61, 53, 17 theo ví dụ
+  giáo trình, nhưng khoá chỉ được tạo khi người dùng bấm "Tạo khoá".
+
+### Thay đổi
+
+- `KeyNotes` lúc chưa có khoá nói rõ đang chưa có khoá và cần bấm gì, thay vì mô tả một khoá không
+  tồn tại.
+- Thẻ "Khoá hiện tại" chỉ hiện sáu ô `p`, `q`, `n`, `φ(n)`, `e`, `d` khi đã có khoá — không ai còn
+  nhìn sáu ô trống rồi tưởng khoá vừa tạo ra là rỗng. Dùng `ContentControl` + `DataTemplate` chứ
+  không phải `Visibility`: ẩn bằng `Visibility` thì sáu binding vẫn tồn tại và vẫn bám vào một nguồn
+  `null`, sinh `PathError` mà `UiSmokeTests` bắt được.
+
 ## 2026-08-17 — Mọi thông báo hiện thêm bằng hộp thoại
 
 ### Thêm
