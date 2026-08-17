@@ -33,6 +33,12 @@ public sealed class RsaViewModel : ViewModelBase
     private const string SignatureFileName = "chukyso.txt";
     private const string PublicKeyFileName = "publickey.txt";
 
+    /// <summary>
+    /// File khoá đầy đủ, chỉ của riêng người dùng. Cố ý không nằm trong bộ ba file
+    /// trên: ba file kia là để đưa cho bên nhận, file này thì không đưa cho ai.
+    /// </summary>
+    private const string PrivateKeyFileName = "privatekey.txt";
+
     // ---- Tab Khoá
     private RsaKeyMode _keyMode = RsaKeyMode.Manual;
     private int _keySizeBits = 1024;
@@ -85,6 +91,8 @@ public sealed class RsaViewModel : ViewModelBase
         GenerateKeyCommand = new AsyncRelayCommand(
             GenerateKeyAsync, ex => KeyError = Describe(ex), () => !IsGeneratingKey);
         CancelKeyCommand = new RelayCommand(() => _keyCts?.Cancel());
+        SaveKeyFileCommand = new RelayCommand(SaveKeyFile);
+        LoadKeyFileCommand = new RelayCommand(LoadKeyFile);
 
         EncryptCommand = new RelayCommand(Encrypt);
         DecryptCommand = new RelayCommand(Decrypt);
@@ -112,6 +120,8 @@ public sealed class RsaViewModel : ViewModelBase
 
     public ICommand GenerateKeyCommand { get; }
     public ICommand CancelKeyCommand { get; }
+    public ICommand SaveKeyFileCommand { get; }
+    public ICommand LoadKeyFileCommand { get; }
 
     public ICommand EncryptCommand { get; }
     public ICommand DecryptCommand { get; }
@@ -214,7 +224,8 @@ public sealed class RsaViewModel : ViewModelBase
             {
                 return "Chưa có khoá. Hai ô p và q ở trên đã điền sẵn 61 và 53 theo ví dụ "
                     + "giáo trình — bấm \"Tạo khoá\" là dùng được ngay. Muốn khoá ký được thì "
-                    + "chọn chế độ Tự động, 1024 bit, rồi bấm \"Tạo khoá\".";
+                    + "chọn chế độ Tự động, 1024 bit, rồi bấm \"Tạo khoá\". Lần trước đã lưu "
+                    + "khoá ra file thì bấm \"Tải khoá từ file\" để dùng lại đúng khoá đó.";
             }
 
             string notes =
@@ -323,6 +334,61 @@ public sealed class RsaViewModel : ViewModelBase
         KeyProgress = $"Đã tạo khoá từ p = {p}, q = {q}.";
         Notifier.Info(KeyProgress);
     }
+
+    /// <summary>
+    /// Ghi khoá hiện tại ra file để lần sau dùng lại. Đây là đường duy nhất giải mã
+    /// lại được bản mã đã lưu: khoá sinh tự động không có cách nào dựng lại từ đầu.
+    /// </summary>
+    /// <remarks>
+    /// File này chứa khoá riêng nên cảnh báo nằm ngay dưới hai nút trong giao diện,
+    /// không chỉ trong tài liệu.
+    /// </remarks>
+    private void SaveKeyFile() => TryFileAction(
+        () =>
+        {
+            KeyProgress = string.Empty;
+
+            if (_key is null)
+            {
+                KeyError = "Chưa có khoá để lưu. Hãy bấm \"Tạo khoá\" trước.";
+                return;
+            }
+
+            string? path = TextFileDialogs.WriteText(
+                "Lưu khoá (chứa khoá riêng)",
+                PrivateKeyFileName,
+                TextFileDialogs.TextFilter,
+                RsaKeyFile.FormatPrivate(_key));
+
+            if (path is not null)
+            {
+                KeyProgress = $"Đã lưu khoá vào {path}";
+                Notifier.Info(KeyProgress);
+            }
+        },
+        error => KeyError = error);
+
+    /// <summary>Dựng lại khoá từ p, q, e trong file — đi qua đúng FromPrimes như khoá nhập tay.</summary>
+    private void LoadKeyFile() => TryFileAction(
+        () =>
+        {
+            KeyProgress = string.Empty;
+
+            string? text = TextFileDialogs.ReadText(
+                "Chọn file khoá", TextFileDialogs.TextFilter, TextFileDialogs.NumberMaxBytes);
+
+            if (text is null)
+            {
+                return;   // người dùng bấm Cancel
+            }
+
+            (BigInteger p, BigInteger q, BigInteger e) = RsaKeyFile.ParsePrivate(text);
+
+            SetKey(RsaKeyFactory.FromPrimes(p, q, e));
+            KeyProgress = $"Đã tải khoá {_key!.KeySizeBits} bit từ file.";
+            Notifier.Info(KeyProgress);
+        },
+        error => KeyError = error);
 
     /// <summary>
     /// Nhận khoá mới và xoá mọi kết quả sinh ra từ khoá cũ. Giữ lại bản mã cũ sẽ
