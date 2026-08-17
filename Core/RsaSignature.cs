@@ -120,6 +120,49 @@ public static class RsaSignature
         return new RsaVerificationResult(isValid, expectedHex, recoveredHex);
     }
 
+    /// <summary>
+    /// Giải mã chữ ký bằng khoá công khai để lấy lại giá trị băm: <c>H' = s^e mod n</c>.
+    /// </summary>
+    /// <remarks>
+    /// Đây là nửa đầu của <see cref="Verify"/>, tách riêng để giao diện hiện được bước
+    /// trung gian "giải mã chữ ký" trước bước "so sánh hai giá trị băm". Phán quyết hợp
+    /// lệ hay không vẫn là việc của <see cref="Verify"/> — ở đây không so sánh gì.
+    /// <para>
+    /// Kết quả được đệm 0 cho đủ 64 ký tự hex: giá trị phục hồi mất byte đầu khi byte đó
+    /// bằng 0, không đệm thì hai ô hex trên màn hình lệch độ dài dù giá trị khớp nhau.
+    /// </para>
+    /// </remarks>
+    /// <exception cref="ArgumentException">
+    /// Khi <paramref name="n"/> nhỏ hơn 2, hoặc chữ ký nằm ngoài khoảng <c>[0, n)</c>.
+    /// </exception>
+    /// <exception cref="InvalidOperationException">
+    /// Khi khoá nhỏ hơn <see cref="MinimumKeySizeBitsForSigning"/> bit.
+    /// </exception>
+    public static string RecoverHashHex(BigInteger signature, BigInteger n, BigInteger e)
+    {
+        if (n < 2)
+        {
+            throw new ArgumentException($"Modulus n phải lớn hơn 1, nhận được {n}.", nameof(n));
+        }
+
+        EnsureKeyLargeEnough((int)n.GetBitLength());
+
+        // Khác Verify: ở đây chữ ký ngoài [0, n) là đầu vào sai cấu trúc, không phải
+        // một phán quyết "không hợp lệ" — nói thẳng ra để người dùng sửa ô nhập.
+        if (signature.Sign < 0 || signature >= n)
+        {
+            throw new ArgumentException(
+                "Chữ ký phải là số nằm trong khoảng [0, n) nên không giải mã được. "
+                + "Hãy kiểm tra lại chữ ký và khoá công khai có cùng một cặp khoá hay không.",
+                nameof(signature));
+        }
+
+        BigInteger recovered = BigInteger.ModPow(signature, e, n);
+
+        return Convert.ToHexString(recovered.ToByteArray(isUnsigned: true, isBigEndian: true))
+            .PadLeft(SHA256.HashSizeInBytes * 2, '0');
+    }
+
     /// <summary>Băm SHA-256 nội dung UTF-8 của bản tin.</summary>
     public static byte[] ComputeHash(string message)
     {
