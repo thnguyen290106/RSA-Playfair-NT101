@@ -257,12 +257,13 @@ public sealed class PlayfairViewModel : ViewModelBase
         for (int index = 0; index < _matrix.Cells.Count; index++)
         {
             (int row, int col) = (index / _matrix.Size, index % _matrix.Size);
+            bool isInput = false, isOutput = false;
 
-            bool isInput = _selectedStep is { } step
-                && ((row, col) == (step.RowA, step.ColA) || (row, col) == (step.RowB, step.ColB));
-            bool isOutput = _selectedStep is { } outStep
-                && ((row, col) == (outStep.OutRowA, outStep.OutColA)
-                    || (row, col) == (outStep.OutRowB, outStep.OutColB));
+            if (_selectedStep is { } step)
+            {
+                isInput = (row, col) == (step.RowA, step.ColA) || (row, col) == (step.RowB, step.ColB);
+                isOutput = (row, col) == (step.OutRowA, step.OutColA) || (row, col) == (step.OutRowB, step.OutColB);
+            }
 
             MatrixCells.Add(new MatrixCell(
                 _matrix.Cells[index],
