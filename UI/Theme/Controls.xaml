@@ -129,6 +129,27 @@
         <Setter Property="VerticalContentAlignment" Value="Top" />
     </Style>
 
+    <!--
+        Ba kiểu dùng chung ở cả màn hình RSA và Playfair: nhãn của một ô nhập, ô chỉ
+        để đọc kết quả, và dòng báo lỗi. Nằm ở đây vì hai màn hình phải giống nhau —
+        trước đó mỗi View giữ một bản sao y nguyên.
+    -->
+    <Style x:Key="FieldLabel" TargetType="TextBlock" BasedOn="{StaticResource CaptionText}">
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0,0,10,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="ReadOnlyValue" TargetType="TextBox" BasedOn="{StaticResource MonoBox}">
+        <Setter Property="IsReadOnly" Value="True" />
+        <Setter Property="MaxHeight" Value="76" />
+        <Setter Property="Margin" Value="0,0,0,8" />
+    </Style>
+
+    <Style x:Key="ErrorText" TargetType="TextBlock" BasedOn="{StaticResource BodyText}">
+        <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+    </Style>
+
     <!-- ============================================================ Chip chọn -->
 
     <!--
