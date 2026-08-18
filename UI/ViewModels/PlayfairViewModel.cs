@@ -263,7 +263,7 @@ public sealed class PlayfairViewModel : ViewModelBase
         if (encrypting && EncryptOutput.Length > 0)
         {
             DecryptInput = EncryptOutput;
-            Status = "Mã hoá hoàn tất. Bản mã đã được chuyển sang ô nhập của phần Giải mã bên dưới. "
+            Status = "Mã hoá hoàn tất. Bản mã đã được chuyển sang ô nhập của phần Giải mã bên phải. "
                 + "Bấm \"Giải mã\" để kiểm tra vòng ngược.";
         }
         else if (!encrypting && DecryptOutput.Length > 0)
