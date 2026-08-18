@@ -190,10 +190,10 @@
                                     </ContentControl.ContentTemplate>
                                 </ContentControl>
 
-                                <Border Style="{StaticResource InfoBanner}" Margin="0,14,0,0"
-                                        Visibility="{Binding KeyNotes, Converter={StaticResource EmptyToCollapsed}}">
+                                <ContentControl Style="{StaticResource MarchingInfoBanner}" Margin="0,14,0,0"
+                                                Visibility="{Binding KeyNotes, Converter={StaticResource EmptyToCollapsed}}">
                                     <TextBlock Text="{Binding KeyNotes}" Style="{StaticResource BodyText}" />
-                                </Border>
+                                </ContentControl>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -362,13 +362,10 @@
                     <StackPanel MaxWidth="1040" HorizontalAlignment="Left" Margin="0,0,0,10">
 
                         <!-- Băng này là điều dễ hiểu sai nhất của tab: viền chạy để hút mắt vào trước. -->
-                        <Grid>
-                            <Border Style="{StaticResource InfoBanner}">
-                                <TextBlock Style="{StaticResource BodyText}"
-                                           Text="Ký thì dùng khoá riêng, xác thực thì dùng khoá công khai — ngược với mã hoá. Thông điệp được băm bằng SHA-256 trước, rồi ký trên bản băm: chữ ký = hashᵈ mod n. Vì bản băm dài 256 bit nên khoá phải từ 512 bit trở lên." />
-                            </Border>
-                            <Rectangle Style="{StaticResource MarchingBorder}" />
-                        </Grid>
+                        <ContentControl Style="{StaticResource MarchingInfoBanner}">
+                            <TextBlock Style="{StaticResource BodyText}"
+                                       Text="Ký thì dùng khoá riêng, xác thực thì dùng khoá công khai — ngược với mã hoá. Thông điệp được băm bằng SHA-256 trước, rồi ký trên bản băm: chữ ký = hashᵈ mod n. Vì bản băm dài 256 bit nên khoá phải từ 512 bit trở lên." />
+                        </ContentControl>
 
                         <!--
                             Hai cột = hai bên của một lần ký thật: bên trái có khoá riêng, bên
