@@ -6,6 +6,31 @@ trong `git log`.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Project không đánh số
 phiên bản (đây là bài tập, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
 
+## 2026-08-18 — Sửa lỗi thông báo giải mã lúc nào cũng nói còn ký tự đệm
+
+### Sửa lỗi
+
+- **Hộp thoại sau khi giải mã nói "vẫn còn ký tự đệm" trong mọi trường hợp**, kể cả khi bản rõ không
+  có ký tự đệm nào. Ca người dùng báo: `BUOMATHUOT` chia cặp thành `BU OM AT HU OT`, không chèn gì,
+  nhưng thông báo vẫn khẳng định là còn.
+- Câu đó giờ đọc `PlayfairResult.SuspectFillerPositions` — danh sách `Core` **đã** tính sẵn từ trước
+  — rồi nói đúng một trong hai: còn bao nhiêu vị trí nghi là ký tự đệm, hoặc không có vị trí nào.
+- Câu mô tả của thẻ Giải mã cũng khẳng định như vậy, đã sửa thành có điều kiện.
+
+### Ghi chú
+
+- Đây là lỗi ở tầng thông báo, không phải lỗi thuật toán: `Core/PlayfairCipher.FindSuspectFillers`
+  vẫn luôn phỏng đoán đúng, và băng cảnh báo vàng vẫn luôn liệt kê đúng vị trí. Chỉ có câu trong hộp
+  thoại là viết cứng.
+- Cảnh báo bắn mọi lần thì không còn là cảnh báo. Điều đáng nói của Playfair là **không phân biệt
+  được** ký tự đệm với ký tự thật; nói câu đó cả khi không có ký tự đệm nào làm người xem quen với
+  việc bỏ qua nó, đúng lúc nó thật sự có ý nghĩa.
+- `UiSmokeTests` thêm ca `BUOMATHUOT` (round-trip không mất gì, thông báo và băng cảnh báo đều không
+  được nhắc ký tự đệm) và một assert ngược cho `HELLO → HELXLO` (phải nhắc). Hai assert so bằng cụm
+  "không có vị trí nào" chứ không phải "nghi là ký tự đệm": câu phủ định cũng chứa cụm sau, nên tìm
+  cụm sau thì hai câu không phân biệt được — chính bẫy này làm assert đầu tiên xanh sai một lần.
+- `dotnet build` sạch (0 warning), `dotnet test` **521 pass**.
+
 ## 2026-08-18 — Hai làn Playfair đặt cạnh nhau
 
 ### Thay đổi
