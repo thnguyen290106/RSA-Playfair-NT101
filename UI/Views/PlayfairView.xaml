@@ -115,52 +115,88 @@
                     <StackPanel MaxWidth="1180" HorizontalAlignment="Left" Margin="0,0,0,10">
                         <Border Style="{StaticResource Card}">
                             <StackPanel>
-                                <TextBlock Text="Văn bản" Style="{StaticResource SectionText}" />
+                                <TextBlock Text="Mã hoá" Style="{StaticResource SectionText}" />
                                 <TextBlock Style="{StaticResource BodyText}" Margin="0,6,0,10" TextWrapping="Wrap"
-                                           Text="Một ô nhập cho cả hai chiều: bản mã của Playfair vẫn là chữ cái nên không cần tách ô. Bấm 'Đưa kết quả sang ô nhập' để đi vòng ngược." />
+                                           Text="Bản rõ được chuẩn hoá rồi chia cặp trước khi mã hoá. Xong thì bản mã tự chuyển sang ô nhập của phần Giải mã bên dưới." />
 
+                                <TextBlock Text="Bản rõ" Style="{StaticResource FieldLabel}"
+                                           HorizontalAlignment="Left" Margin="0,0,0,4" />
                                 <TextBox Style="{StaticResource InputBox}" Height="76" Margin="0,0,0,10"
                                          AcceptsReturn="True" TextWrapping="Wrap"
                                          VerticalScrollBarVisibility="Auto"
-                                         Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}" />
+                                         Text="{Binding EncryptInput, UpdateSourceTrigger=PropertyChanged}" />
 
                                 <WrapPanel>
                                     <Button Content="Mã hoá" Style="{StaticResource PrimaryButton}"
                                             Margin="0,0,8,8" Command="{Binding EncryptCommand}" />
-                                    <Button Content="Giải mã" Style="{StaticResource PrimaryButton}"
-                                            Margin="0,0,8,8" Command="{Binding DecryptCommand}" />
-                                    <Button Content="Đưa kết quả sang ô nhập" Style="{StaticResource GhostButton}"
-                                            Margin="0,0,8,8" Command="{Binding UseOutputAsInputCommand}" />
-                                    <Button Content="Sao chép kết quả" Style="{StaticResource GhostButton}"
-                                            Margin="0,0,8,8" Command="{Binding CopyOutputCommand}" />
+                                    <Button Content="Sao chép bản mã" Style="{StaticResource GhostButton}"
+                                            Margin="0,0,8,8" Command="{Binding CopyEncryptOutputCommand}" />
                                 </WrapPanel>
 
-                                <TextBlock Style="{StaticResource ErrorText}" TextWrapping="Wrap" Margin="0,2,0,0"
-                                           Text="{Binding Error}"
-                                           Visibility="{Binding Error, Converter={StaticResource EmptyToCollapsed}}" />
+                                <TextBlock Style="{StaticResource ErrorText}" TextWrapping="Wrap" Margin="0,2,0,8"
+                                           Text="{Binding EncryptError}"
+                                           Visibility="{Binding EncryptError, Converter={StaticResource EmptyToCollapsed}}" />
+
+                                <TextBlock Text="Sau chuẩn hoá" Style="{StaticResource FieldLabel}"
+                                           HorizontalAlignment="Left" Margin="0,0,0,4" />
+                                <TextBox Style="{StaticResource ReadOnlyValue}" Text="{Binding EncryptNormalized, Mode=OneWay}" />
+
+                                <TextBlock Text="Đã chia cặp" Style="{StaticResource FieldLabel}"
+                                           HorizontalAlignment="Left" Margin="0,0,0,4" />
+                                <TextBox Style="{StaticResource ReadOnlyValue}" Text="{Binding EncryptPaired, Mode=OneWay}" />
+
+                                <TextBlock Text="Bản mã" Style="{StaticResource FieldLabel}"
+                                           HorizontalAlignment="Left" Margin="0,0,0,4" />
+                                <TextBox Style="{StaticResource ReadOnlyValue}" Text="{Binding EncryptOutput, Mode=OneWay}" />
+
+                                <Border Style="{StaticResource WarningBanner}" Margin="0,4,0,0"
+                                        Visibility="{Binding EncryptWarning, Converter={StaticResource EmptyToCollapsed}}">
+                                    <TextBlock Style="{StaticResource BodyText}" TextWrapping="Wrap"
+                                               Text="{Binding EncryptWarning}" />
+                                </Border>
                             </StackPanel>
                         </Border>
 
                         <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                             <StackPanel>
-                                <TextBlock Text="Kết quả" Style="{StaticResource SectionText}" Margin="0,0,0,10" />
+                                <TextBlock Text="Giải mã" Style="{StaticResource SectionText}" />
+                                <TextBlock Style="{StaticResource BodyText}" Margin="0,6,0,10" TextWrapping="Wrap"
+                                           Text="Giải mã không lấy lại được bản rõ gốc: kết quả là văn bản đã chuẩn hoá và vẫn còn ký tự đệm đã chèn lúc mã hoá." />
+
+                                <TextBlock Text="Bản mã" Style="{StaticResource FieldLabel}"
+                                           HorizontalAlignment="Left" Margin="0,0,0,4" />
+                                <TextBox Style="{StaticResource InputBox}" Height="76" Margin="0,0,0,10"
+                                         AcceptsReturn="True" TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         Text="{Binding DecryptInput, UpdateSourceTrigger=PropertyChanged}" />
+
+                                <WrapPanel>
+                                    <Button Content="Giải mã" Style="{StaticResource PrimaryButton}"
+                                            Margin="0,0,8,8" Command="{Binding DecryptCommand}" />
+                                    <Button Content="Sao chép bản rõ" Style="{StaticResource GhostButton}"
+                                            Margin="0,0,8,8" Command="{Binding CopyDecryptOutputCommand}" />
+                                </WrapPanel>
+
+                                <TextBlock Style="{StaticResource ErrorText}" TextWrapping="Wrap" Margin="0,2,0,8"
+                                           Text="{Binding DecryptError}"
+                                           Visibility="{Binding DecryptError, Converter={StaticResource EmptyToCollapsed}}" />
 
                                 <TextBlock Text="Sau chuẩn hoá" Style="{StaticResource FieldLabel}"
                                            HorizontalAlignment="Left" Margin="0,0,0,4" />
-                                <TextBox Style="{StaticResource ReadOnlyValue}" Text="{Binding Normalized, Mode=OneWay}" />
+                                <TextBox Style="{StaticResource ReadOnlyValue}" Text="{Binding DecryptNormalized, Mode=OneWay}" />
 
                                 <TextBlock Text="Đã chia cặp" Style="{StaticResource FieldLabel}"
                                            HorizontalAlignment="Left" Margin="0,0,0,4" />
-                                <TextBox Style="{StaticResource ReadOnlyValue}" Text="{Binding PairedText, Mode=OneWay}" />
+                                <TextBox Style="{StaticResource ReadOnlyValue}" Text="{Binding DecryptPaired, Mode=OneWay}" />
 
-                                <TextBlock Text="{Binding OutputLabel}" Style="{StaticResource FieldLabel}"
+                                <TextBlock Text="Bản rõ (đã chuẩn hoá, còn ký tự đệm)" Style="{StaticResource FieldLabel}"
                                            HorizontalAlignment="Left" Margin="0,0,0,4" />
-                                <TextBox Style="{StaticResource ReadOnlyValue}" Text="{Binding Output, Mode=OneWay}" />
+                                <TextBox Style="{StaticResource ReadOnlyValue}" Text="{Binding DecryptOutput, Mode=OneWay}" />
 
                                 <Border Style="{StaticResource WarningBanner}" Margin="0,4,0,0"
-                                        Visibility="{Binding WarningText, Converter={StaticResource EmptyToCollapsed}}">
+                                        Visibility="{Binding DecryptWarning, Converter={StaticResource EmptyToCollapsed}}">
                                     <TextBlock Style="{StaticResource BodyText}" TextWrapping="Wrap"
-                                               Text="{Binding WarningText}" />
+                                               Text="{Binding DecryptWarning}" />
                                 </Border>
                             </StackPanel>
                         </Border>
@@ -171,7 +207,7 @@
                         -->
                         <Border Style="{StaticResource Card}" Margin="0,12,0,0">
                             <StackPanel>
-                                <TextBlock Text="Vết từng cặp" Style="{StaticResource SectionText}" />
+                                <TextBlock Text="{Binding TraceTitle}" Style="{StaticResource SectionText}" />
                                 <TextBlock Style="{StaticResource BodyText}" Margin="0,6,0,10" TextWrapping="Wrap"
                                            Text="Chọn một dòng để thấy cặp đó đi từ ô nào sang ô nào trên ma trận bên phải. Toạ độ đếm từ 1." />
 
