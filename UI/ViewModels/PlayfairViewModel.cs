@@ -268,8 +268,15 @@ public sealed class PlayfairViewModel : ViewModelBase
         }
         else if (!encrypting && DecryptOutput.Length > 0)
         {
-            Status = "Giải mã hoàn tất. Kết quả là văn bản đã chuẩn hoá và vẫn còn ký tự đệm, "
-                + "không phải bản rõ gốc trước khi mã hoá.";
+            // Có ký tự đệm hay không là chuyện của từng bản mã, không phải chuyện luôn
+            // đúng: nói "vẫn còn ký tự đệm" cho một bản rõ không có ký tự đệm nào là
+            // báo sai. Core đã phỏng đoán sẵn danh sách vị trí, chỉ cần đọc lại.
+            int suspects = _decryptResult?.SuspectFillerPositions.Count ?? 0;
+
+            Status = "Giải mã hoàn tất. " + (suspects > 0
+                ? $"Kết quả là văn bản đã chuẩn hoá và còn {suspects} vị trí nghi là ký tự đệm — "
+                    + "xem băng cảnh báo để biết vị trí nào."
+                : "Kết quả là văn bản đã chuẩn hoá, và không có vị trí nào nghi là ký tự đệm.");
         }
     }
 
