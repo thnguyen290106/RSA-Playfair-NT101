@@ -6,6 +6,27 @@ trong `git log`.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Project không đánh số
 phiên bản (đây là bài tập, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
 
+## 2026-08-18 — Hai làn Playfair đặt cạnh nhau
+
+### Thay đổi
+
+- **Hai thẻ Mã hoá và Giải mã của tab 2 chuyển từ xếp dọc sang hai cột cạnh nhau.** Xếp dọc thì
+  thẻ Giải mã bắt đầu dưới tầm nhìn: không thấy được bản mã và bản rõ giải ra cùng lúc — đúng thứ
+  mà việc tách hai làn định giải quyết.
+- Dùng lại đúng `Grid` `* / 16 / *` của RSA tab 3 (`RsaView.xaml:375-380`), không thêm style hay
+  hằng số khoảng cách nào mới.
+- Câu trong hộp thoại sau khi mã hoá sửa theo layout: "bên dưới" → "bên phải".
+
+### Ghi chú
+
+- Hai thẻ đặt `VerticalAlignment="Top"`: hai cột cao khác nhau mỗi khi chỉ một bên có băng cảnh báo,
+  để mặc định `Stretch` thì thẻ ngắn hơn bị kéo dài ra một khoảng trắng vô nghĩa.
+- Hàng nút vẫn là `WrapPanel` (quyết định 6). Mỗi cột giờ chỉ còn khoảng một nửa bề rộng, nên đây
+  là chỗ `WrapPanel` thật sự có việc: ở cửa sổ 1000px hai nút tự xuống dòng thay vì bị cắt.
+- Thẻ "Vết từng cặp" **không đổi**, vẫn chiếm hết bề rộng bên dưới hai cột.
+- `dotnet build` sạch (0 warning), `dotnet test` **521 pass** — `UiSmokeTests` chạy ở khổ 1000 × 640
+  nên lỗi layout ở bề rộng nhỏ nhất sẽ thành test đỏ.
+
 ## 2026-08-18 — Playfair tab 2 chia hai làn
 
 ### Thay đổi
