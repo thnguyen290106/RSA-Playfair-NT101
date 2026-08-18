@@ -23,29 +23,40 @@ public sealed record MatrixCell(char Symbol, string Highlight);
 /// ViewModel cho màn hình Playfair: ma trận, mã hoá/giải mã, và vết từng cặp ký tự.
 /// </summary>
 /// <remarks>
-/// Chỉ có một ô nhập cho cả hai chiều. Playfair đối xứng, và bản mã của nó vẫn là
-/// chữ cái như bản rõ, nên tách hai ô nhập chỉ làm người dùng phải copy qua lại.
-/// Nút "Đưa kết quả sang ô nhập" là đủ để đi vòng tròn mã hoá → giải mã.
+/// Hai chiều có hai làn riêng, mỗi làn một ô nhập và một bộ ô kết quả: nhìn được
+/// cả bản mã và bản rõ giải ra cùng lúc, không phải bấm qua lại rồi đoán kết quả
+/// đang hiện là của chiều nào. Mã hoá xong, bản mã tự sang ô nhập của làn giải mã —
+/// vòng tròn mã hoá → giải mã vì vậy không cần nút chuyển tay nào.
+/// <para>
+/// Bảng vết vẫn dùng chung một bảng cho hai làn: nó chỉ có nghĩa khi gắn với ma trận
+/// đang hiện, và hai bảng vết cạnh nhau thì phải có hai ma trận, trong khi ma trận
+/// của hai chiều là một. <see cref="TraceTitle"/> nói rõ vết đang là của chiều nào.
+/// </para>
 /// </remarks>
 public sealed class PlayfairViewModel : ViewModelBase
 {
     private PlayfairVariant _variant = PlayfairVariant.Grid5x5MergeIJ;
     private string _key = "MONARCHY";
-    private string _inputText = "HELLO";
+    private string _encryptInput = "HELLO";
+    private string _decryptInput = string.Empty;
 
     private PlayfairMatrix _matrix;
-    private PlayfairResult? _result;
+    private PlayfairResult? _encryptResult;
+    private PlayfairResult? _decryptResult;
     private PlayfairStep? _selectedStep;
     private string _direction = string.Empty;
-    private string _error = string.Empty;
+    private string _encryptError = string.Empty;
+    private string _decryptError = string.Empty;
     private string _status = string.Empty;
 
     public PlayfairViewModel()
     {
         EncryptCommand = new RelayCommand(() => Run(encrypting: true));
         DecryptCommand = new RelayCommand(() => Run(encrypting: false));
-        UseOutputAsInputCommand = new RelayCommand(UseOutputAsInput, () => Output.Length > 0);
-        CopyOutputCommand = new RelayCommand(CopyOutput, () => Output.Length > 0);
+        CopyEncryptOutputCommand = new RelayCommand(
+            () => CopyOutput(encrypting: true), () => EncryptOutput.Length > 0);
+        CopyDecryptOutputCommand = new RelayCommand(
+            () => CopyOutput(encrypting: false), () => DecryptOutput.Length > 0);
 
         _matrix = PlayfairMatrix.Build(_key, _variant);
         RefreshCells();
@@ -53,8 +64,8 @@ public sealed class PlayfairViewModel : ViewModelBase
 
     public ICommand EncryptCommand { get; }
     public ICommand DecryptCommand { get; }
-    public ICommand UseOutputAsInputCommand { get; }
-    public ICommand CopyOutputCommand { get; }
+    public ICommand CopyEncryptOutputCommand { get; }
+    public ICommand CopyDecryptOutputCommand { get; }
 
     /// <summary>Các ô của ma trận, xếp theo hàng.</summary>
     public ObservableCollection<MatrixCell> MatrixCells { get; } = [];
@@ -88,11 +99,18 @@ public sealed class PlayfairViewModel : ViewModelBase
         }
     }
 
-    /// <summary>Văn bản cần mã hoá hoặc bản mã cần giải mã.</summary>
-    public string InputText
+    /// <summary>Văn bản cần mã hoá.</summary>
+    public string EncryptInput
     {
-        get => _inputText;
-        set => SetProperty(ref _inputText, value);
+        get => _encryptInput;
+        set => SetProperty(ref _encryptInput, value);
+    }
+
+    /// <summary>Bản mã cần giải mã. Mã hoá xong thì ô này được điền sẵn.</summary>
+    public string DecryptInput
+    {
+        get => _decryptInput;
+        set => SetProperty(ref _decryptInput, value);
     }
 
     /// <summary>Cặp đang chọn trong bảng vết; đổi cặp thì đổi luôn ô được tô sáng.</summary>
@@ -122,26 +140,43 @@ public sealed class PlayfairViewModel : ViewModelBase
         : $"Ma trận 6×6 có 36 ô, vừa đủ 26 chữ cái và 10 chữ số nên giữ được cả J. Ký tự đệm "
             + $"'{_matrix.Filler}', đổi sang '{_matrix.FillerFallback}' khi cần.";
 
-    /// <summary>Văn bản sau chuẩn hoá: đây là thứ thật sự đi vào thuật toán.</summary>
-    public string Normalized => _result?.Normalized ?? string.Empty;
+    /// <summary>Bản rõ sau chuẩn hoá: đây là thứ thật sự đi vào thuật toán.</summary>
+    public string EncryptNormalized => _encryptResult?.Normalized ?? string.Empty;
 
-    /// <summary>Văn bản đã chia cặp, đã chèn ký tự đệm khi mã hoá.</summary>
-    public string PairedText => _result?.PairedText ?? string.Empty;
+    /// <summary>Bản rõ đã chia cặp, đã chèn ký tự đệm.</summary>
+    public string EncryptPaired => _encryptResult?.PairedText ?? string.Empty;
 
-    public string Output => _result?.Output ?? string.Empty;
+    public string EncryptOutput => _encryptResult?.Output ?? string.Empty;
 
-    /// <summary>Nhãn cho ô kết quả, để không phải đoán kết quả đang là của chiều nào.</summary>
-    public string OutputLabel => _direction.Length == 0
-        ? "Kết quả"
-        : $"Kết quả sau khi {_direction}";
+    public string EncryptWarning => _encryptResult?.WarningText ?? string.Empty;
 
-    public string WarningText => _result?.WarningText ?? string.Empty;
+    /// <summary>Bản mã sau chuẩn hoá.</summary>
+    public string DecryptNormalized => _decryptResult?.Normalized ?? string.Empty;
 
-    /// <summary>Lỗi khiến không chạy được, khác với cảnh báo mất thông tin.</summary>
-    public string Error
+    /// <summary>Bản mã đã chia cặp. Giải mã không chèn thêm ký tự đệm nào.</summary>
+    public string DecryptPaired => _decryptResult?.PairedText ?? string.Empty;
+
+    public string DecryptOutput => _decryptResult?.Output ?? string.Empty;
+
+    public string DecryptWarning => _decryptResult?.WarningText ?? string.Empty;
+
+    /// <summary>Tiêu đề bảng vết, để không phải đoán vết đang là của chiều nào.</summary>
+    public string TraceTitle => _direction.Length == 0
+        ? "Vết từng cặp"
+        : $"Vết từng cặp — lần {_direction} gần nhất";
+
+    /// <summary>Lỗi của làn mã hoá. Khác với cảnh báo mất thông tin.</summary>
+    public string EncryptError
     {
-        get => _error;
-        private set => SetProperty(ref _error, value);
+        get => _encryptError;
+        private set => SetProperty(ref _encryptError, value);
+    }
+
+    /// <summary>Lỗi của làn giải mã, ví dụ bản mã có số ký tự lẻ.</summary>
+    public string DecryptError
+    {
+        get => _decryptError;
+        private set => SetProperty(ref _decryptError, value);
     }
 
     /// <summary>Thông báo việc vừa làm xong (sao chép, chuyển kết quả sang ô nhập).</summary>
@@ -163,18 +198,28 @@ public sealed class PlayfairViewModel : ViewModelBase
 
     /// <summary>
     /// Chạy một chiều. Hai chiều dùng chung đúng một đường xử lý kết quả, khác nhau
-    /// duy nhất ở hàm Core được gọi.
+    /// duy nhất ở hàm Core được gọi và ở bộ ô nhận kết quả.
     /// </summary>
     private void Run(bool encrypting)
     {
-        Error = string.Empty;
         Status = string.Empty;
+
+        if (encrypting)
+        {
+            EncryptError = string.Empty;
+        }
+        else
+        {
+            DecryptError = string.Empty;
+        }
+
+        PlayfairResult? result = null;
 
         try
         {
-            _result = encrypting
-                ? PlayfairCipher.Encrypt(InputText, Key, Variant)
-                : PlayfairCipher.Decrypt(InputText, Key, Variant);
+            result = encrypting
+                ? PlayfairCipher.Encrypt(EncryptInput, Key, Variant)
+                : PlayfairCipher.Decrypt(DecryptInput, Key, Variant);
 
             _direction = encrypting ? "mã hoá" : "giải mã";
         }
@@ -182,41 +227,77 @@ public sealed class PlayfairViewModel : ViewModelBase
         {
             // Bản mã có số ký tự lẻ là lỗi của dữ liệu vào, không phải lỗi lập trình:
             // hiện nguyên văn lời giải thích của Core thay vì nuốt đi.
-            _result = null;
             _direction = string.Empty;
-            Error = ex.Message;
+
+            if (encrypting)
+            {
+                EncryptError = ex.Message;
+            }
+            else
+            {
+                DecryptError = ex.Message;
+            }
+        }
+
+        if (encrypting)
+        {
+            _encryptResult = result;
+        }
+        else
+        {
+            _decryptResult = result;
         }
 
         Steps.Clear();
-        foreach (PlayfairStep step in _result?.Steps ?? [])
+        foreach (PlayfairStep step in result?.Steps ?? [])
         {
             Steps.Add(step);
         }
 
         SelectedStep = Steps.FirstOrDefault();
         NotifyResultChanged();
+
+        // Chỉ chuyển tiếp và báo xong khi thật sự có kết quả: văn bản rỗng vẫn ra một
+        // PlayfairResult kèm cảnh báo, nhưng điền chuỗi rỗng sang ô dưới rồi báo
+        // "hoàn tất" là báo sai.
+        if (encrypting && EncryptOutput.Length > 0)
+        {
+            DecryptInput = EncryptOutput;
+            Status = "Mã hoá hoàn tất. Bản mã đã được chuyển sang ô nhập của phần Giải mã bên dưới. "
+                + "Bấm \"Giải mã\" để kiểm tra vòng ngược.";
+        }
+        else if (!encrypting && DecryptOutput.Length > 0)
+        {
+            Status = "Giải mã hoàn tất. Kết quả là văn bản đã chuẩn hoá và vẫn còn ký tự đệm, "
+                + "không phải bản rõ gốc trước khi mã hoá.";
+        }
     }
 
-    private void UseOutputAsInput()
+    /// <summary>Sao chép kết quả của một làn. Hai làn dùng chung một đường xử lý lỗi.</summary>
+    private void CopyOutput(bool encrypting)
     {
-        InputText = Output;
-        Status = "Đã đưa kết quả sang ô nhập. Bấm chiều còn lại để đi vòng ngược.";
-    }
-
-    private void CopyOutput()
-    {
-        Error = string.Empty;
         Status = string.Empty;
 
         try
         {
-            Clipboard.SetText(Output);
-            Status = "Đã sao chép kết quả vào clipboard.";
+            Clipboard.SetText(encrypting ? EncryptOutput : DecryptOutput);
+            Status = encrypting
+                ? "Đã sao chép bản mã vào clipboard."
+                : "Đã sao chép bản rõ vào clipboard.";
         }
         catch (Exception ex) when (ex is ExternalException or InvalidOperationException)
         {
             // Clipboard do cả hệ điều hành giữ nên có thể đang bị chương trình khác chiếm.
-            Error = $"Không mở được clipboard: {ex.Message}";
+            string message = $"Không mở được clipboard: {ex.Message}";
+
+            if (encrypting)
+            {
+                EncryptError = message;
+            }
+            else
+            {
+                DecryptError = message;
+            }
         }
     }
 
@@ -230,9 +311,14 @@ public sealed class PlayfairViewModel : ViewModelBase
     private void RebuildMatrix()
     {
         _matrix = PlayfairMatrix.Build(_key, _variant);
-        _result = null;
+        _encryptResult = null;
+        _decryptResult = null;
         _direction = string.Empty;
-        Error = string.Empty;
+        EncryptError = string.Empty;
+        DecryptError = string.Empty;
+        // Bản mã trong ô giải mã cũng do ma trận cũ sinh ra: để lại là mời người dùng
+        // giải mã nó bằng một ma trận khác.
+        DecryptInput = string.Empty;
         Steps.Clear();
         SelectedStep = null;
 
@@ -279,10 +365,14 @@ public sealed class PlayfairViewModel : ViewModelBase
 
     private void NotifyResultChanged()
     {
-        OnPropertyChanged(nameof(Normalized));
-        OnPropertyChanged(nameof(PairedText));
-        OnPropertyChanged(nameof(Output));
-        OnPropertyChanged(nameof(OutputLabel));
-        OnPropertyChanged(nameof(WarningText));
+        OnPropertyChanged(nameof(EncryptNormalized));
+        OnPropertyChanged(nameof(EncryptPaired));
+        OnPropertyChanged(nameof(EncryptOutput));
+        OnPropertyChanged(nameof(EncryptWarning));
+        OnPropertyChanged(nameof(DecryptNormalized));
+        OnPropertyChanged(nameof(DecryptPaired));
+        OnPropertyChanged(nameof(DecryptOutput));
+        OnPropertyChanged(nameof(DecryptWarning));
+        OnPropertyChanged(nameof(TraceTitle));
     }
 }
