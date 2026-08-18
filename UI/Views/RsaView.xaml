@@ -36,7 +36,7 @@
                                                  IsChecked="{Binding KeyMode, Converter={StaticResource ValueEquals}, ConverterParameter=Auto}" />
                                 </StackPanel>
 
-                                <!-- Thủ công: p, q, e nhập tay. Mặc định 61/53/17 khớp ví dụ giáo trình. -->
+                                <!-- Thủ công: p, q, e nhập tay. Mặc định 61/53/17 — số nhỏ, dễ soi từng bước. -->
                                 <StackPanel Visibility="{Binding IsManualMode, Converter={StaticResource BoolToVisible}}">
                                     <Grid Margin="0,14,0,0">
                                         <Grid.ColumnDefinitions>

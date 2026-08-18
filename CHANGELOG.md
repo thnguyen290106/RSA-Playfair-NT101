@@ -4,7 +4,33 @@ Ghi lại các thay đổi đáng kể của app. Đây là mục đầu tiên c
 trong `git log`.
 
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Project không đánh số
-phiên bản (đây là bài tập, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
+phiên bản (app minh hoạ, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
+
+## 2026-08-18 — Bỏ mọi tham chiếu tới môn học, coi đây là một app độc lập
+
+### Thay đổi
+
+- **Không còn chữ "NT101", "giáo trình", "bài tập lớn", "giảng viên" ở bất kỳ đâu** — kể cả trong
+  comment, tài liệu, và `.gitignore`. Lý do chọn 61/53/17 giờ được nói bằng đúng lý do kỹ thuật
+  ("hai số nguyên tố nhỏ, đủ để xem từng bước") thay vì "khớp ví dụ giáo trình"; biến thể Playfair
+  5×5 là "biến thể phổ biến nhất" thay vì "biến thể trong hầu hết giáo trình"; chọn `φ(n)` thay
+  `λ(n)` vì "công thức quen hơn và không thêm khái niệm mới".
+- **Tiêu đề README bỏ hậu tố `— NT101`**, và câu mở đầu nói "phần lớn bản minh hoạ hai thuật toán
+  này" thay vì "bài tập cùng đề".
+- **Bỏ mục "Điều đã biết là còn thiếu" khỏi README.** Hai gạch đầu dòng trong đó (không làm phân
+  tích tần suất digram, chỉ ký được nội dung văn bản) là ghi chú phạm vi nội bộ —
+  `PROJECT_CONTEXT.md` đã giữ chúng, README không cần.
+- **Ảnh minh hoạ chụp lại với dữ liệu mẫu trung tính.** `Xin chào` cho tab mã hoá RSA và
+  `Chuyen khoan 5.000.000 dong cho Nguyen Van A.` cho tab chữ ký số — không còn câu nào nhắc tên
+  môn học trong ảnh.
+
+### Ghi chú
+
+- Namespace `RSA_Playfair_NT101` và tên repo giữ nguyên: đổi namespace là refactor xuyên suốt mà
+  không đổi được thứ người dùng nhìn thấy, còn tên repo thì nằm ngoài source code.
+- Đây thuần là thay đổi câu chữ: `detect_changes` báo 5 symbol bị "touched" (comment và chuỗi hiện
+  trên UI), 0 execution flow bị ảnh hưởng, risk **low**.
+- `dotnet build` sạch (0 warning), `dotnet test` **521 pass**.
 
 ## 2026-08-18 — Sửa lỗi thông báo giải mã lúc nào cũng nói còn ký tự đệm
 
@@ -152,7 +178,7 @@ phiên bản (đây là bài tập, không phát hành), nên mỗi mục đư�
   | `PlayfairMatrix.cs` | Sinh ma trận từ khoá, tra ô ↔ toạ độ, chuẩn hoá văn bản theo bảng chữ của biến thể |
   | `PlayfairCipher.cs` | Chia cặp, chèn ký tự đệm, ba quy tắc, vết từng cặp, cảnh báo mất thông tin |
 
-- **Hai biến thể ma trận.** 5×5 gộp `J` vào `I` và bỏ chữ số (đúng ví dụ giáo trình); 6×6 có đủ 26
+- **Hai biến thể ma trận.** 5×5 gộp `J` vào `I` và bỏ chữ số (biến thể phổ biến nhất); 6×6 có đủ 26
   chữ cái + 10 chữ số nên giữ được cả `J` và mã hoá được chữ số.
 - **Màn hình Playfair, hai tab.** Tab 1 là khoá và ma trận; tab 2 là mã hoá/giải mã, kết quả từng
   bước (sau chuẩn hoá → đã chia cặp → kết quả) và bảng vết từng cặp. Bảng vết nằm cạnh một bản ma
@@ -258,8 +284,8 @@ phiên bản (đây là bài tập, không phát hành), nên mỗi mục đư�
 
 - **Mở app không còn tự tạo khoá 61 × 53.** Trước đây constructor của `RsaViewModel` tạo sẵn khoá từ
   hai số điền mặc định, nên sau khi thêm hộp thoại thì vừa mở app đã bật lên "Đã tạo khoá từ p = 61,
-  q = 53." — một việc chưa ai yêu cầu. Giờ hai ô `p`, `q`, `e` vẫn điền sẵn 61, 53, 17 theo ví dụ
-  giáo trình, nhưng khoá chỉ được tạo khi người dùng bấm "Tạo khoá".
+  q = 53." — một việc chưa ai yêu cầu. Giờ hai ô `p`, `q`, `e` vẫn điền sẵn 61, 53, 17 — số nhỏ, dễ soi từng
+  bước, nhưng khoá chỉ được tạo khi người dùng bấm "Tạo khoá".
 
 ### Thay đổi
 

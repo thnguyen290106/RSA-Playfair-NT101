@@ -485,7 +485,7 @@ $RECYCLE.BIN/
 .serena/
 
 # ---------------------------------------------------------------------------
-# AI/agent tooling — không thuộc source code của bài tập, không nộp kèm
+# AI/agent tooling — không thuộc source code của app, không phát hành kèm
 # ---------------------------------------------------------------------------
 
 # Hướng dẫn dành cho AI agent (do tooling sinh ra, không phải tài liệu project)
@@ -506,6 +506,6 @@ PROJECT_CONTEXT.md
 .impeccable/
 
 # ---------------------------------------------------------------------------
-# Project test — chỉ dùng để self-test trong lúc phát triển, không nộp kèm
+# Project test — chỉ dùng để self-test trong lúc phát triển, không phát hành kèm
 # ---------------------------------------------------------------------------
 RSA-PlayFair-NT101-Test/

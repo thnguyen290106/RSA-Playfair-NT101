@@ -155,7 +155,7 @@
     <!--
         RadioButton vẽ lại thành chip. Dùng thay ComboBox cho các lựa chọn ít
         phương án (chế độ khoá, độ dài khoá, định dạng hiển thị): mọi phương án
-        hiện sẵn nên giảng viên không phải bấm mở danh sách mới biết có gì.
+        hiện sẵn nên người dùng không phải bấm mở danh sách mới biết có gì.
     -->
     <Style x:Key="SegmentChip" TargetType="RadioButton">
         <Setter Property="FontFamily" Value="{StaticResource UiFont}" />

@@ -19,8 +19,8 @@ namespace RSA_Playfair_NT101.Core;
 /// <param name="Phi">Hàm Euler <c>φ(n) = (p-1)(q-1)</c>.</param>
 /// <param name="Lambda">
 /// Hàm Carmichael <c>λ(n) = lcm(p-1, q-1)</c>. Chuẩn PKCS#1 thực tế dùng giá trị
-/// này để cho <c>d</c> nhỏ hơn. Ứng dụng tính <c>d</c> theo <c>φ(n)</c> cho khớp
-/// giáo trình, nhưng vẫn hiện <c>λ(n)</c> để đối chiếu.
+/// này để cho <c>d</c> nhỏ hơn. Ứng dụng tính <c>d</c> theo <c>φ(n)</c> — công thức
+/// quen hơn và không thêm khái niệm mới — nhưng vẫn hiện <c>λ(n)</c> để đối chiếu.
 /// </param>
 public sealed record RsaKeyPair(
     BigInteger N,

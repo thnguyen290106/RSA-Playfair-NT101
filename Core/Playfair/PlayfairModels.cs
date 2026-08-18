@@ -5,7 +5,7 @@ public enum PlayfairVariant
 {
     /// <summary>
     /// Ma trận 5×5 kinh điển. Bảng chữ Latin có 26 chữ mà ô chỉ có 25, nên
-    /// <c>J</c> bị gộp vào <c>I</c>. Đây là biến thể trong hầu hết giáo trình.
+    /// <c>J</c> bị gộp vào <c>I</c>. Đây là biến thể phổ biến nhất.
     /// </summary>
     Grid5x5MergeIJ,
 

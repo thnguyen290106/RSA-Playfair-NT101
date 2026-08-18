@@ -1,11 +1,11 @@
-# RSA & Playfair — NT101
+# RSA & Playfair
 
 App desktop Windows minh hoạ hai thuật toán mã hoá: **RSA** (hiện đại, khoá công khai) và
 **Playfair** (cổ điển, mã hoá theo cặp ký tự).
 
-Bài tập cùng đề thường chỉ hiện input và output, nên người chấm không thấy được con số ở giữa đến
-từ đâu, và cũng không thấy được thuật toán yếu ở chỗ nào. App này hiện **từng bước biến đổi**, và
-nói thẳng những giới hạn của thuật toán thay vì che.
+Phần lớn bản minh hoạ hai thuật toán này chỉ hiện input và output, nên người xem không thấy được
+con số ở giữa đến từ đâu, và cũng không thấy được thuật toán yếu ở chỗ nào. App này hiện **từng
+bước biến đổi**, và nói thẳng những giới hạn của thuật toán thay vì che.
 
 ![Trang chủ](docs/images/01-home.png)
 
@@ -24,8 +24,9 @@ Không cần cài gì thêm — không có dependency NuGet nào cho app, không
 
 ### 1. Sinh khoá
 
-Chọn **Auto** (512 / 1024 / 2048 bit) hoặc **Manual** (`p`, `q`, `e` — mặc định 61, 53, 17, khớp
-ví dụ giáo trình). Auto chạy async, có progress và huỷ được vì 2048 bit mất 5–20 giây.
+Chọn **Auto** (512 / 1024 / 2048 bit) hoặc **Manual** (`p`, `q`, `e` — mặc định 61, 53, 17, bộ số
+nhỏ kinh điển, dễ soi từng bước). Auto chạy async, có progress và huỷ được vì 2048 bit mất 5–20
+giây.
 
 Sáu ô giá trị hiện đủ `p`, `q`, `n`, `φ(n)`, `e`, `d` — không có con số nào bị ẩn.
 
@@ -123,7 +124,7 @@ dung bind thẳng vào `SelectedNav.Content`.
    định: cùng bản rõ + cùng khoá → cùng bản mã). Chuẩn thật dùng PKCS#1 v1.5 hoặc OAEP.
 2. **Chặn cứng khoá dưới 512 bit khi ký.** Bản băm SHA-256 là số 256 bit, phải nhỏ hơn `n`. Không
    lách bằng `H mod n` vì như vậy nhiều bản tin khác nhau cho cùng một giá trị ký.
-3. **Dùng `φ(n) = (p−1)(q−1)`, không dùng `λ(n)`.** Khớp giáo trình phổ biến.
+3. **Dùng `φ(n) = (p−1)(q−1)`, không dùng `λ(n)`.** Công thức quen hơn và không thêm khái niệm mới.
 4. **Header 4 byte trong container bản mã** thay cho padding, để round-trip không mất byte nào.
 5. **Playfair chèn ký tự đệm ngay trong lúc chia cặp**, không phải một lượt quét trước đó. Chèn
    trước thì ký tự vừa chèn lại tạo ra cặp trùng mới ở phía sau (`AAA` là ví dụ).
@@ -148,16 +149,6 @@ theo thiết kế.
 ```bash
 dotnet test
 ```
-
-## Điều đã biết là còn thiếu
-
-- **Phân tích tần suất cặp ký tự của Playfair không làm.** Muốn nói "cặp này bất thường" thì phải
-  có bảng tần suất digram tiếng Anh làm mốc; số liệu đó không có trong dự án, và bịa một bảng để
-  giao diện có thêm biểu đồ thì con số hiện lên không dựa trên gì. Điểm yếu của Playfair vì vậy
-  được nói bằng chữ (bảng chữ chỉ 25/36 ô, mỗi cặp luôn ánh xạ về đúng một cặp) chứ không bằng
-  biểu đồ.
-- App chỉ ký được **nội dung văn bản**: file chọn ở hộp thoại được đọc dưới dạng text, không ký
-  file nhị phân.
 
 Chi tiết hơn: `PROJECT_CONTEXT.md` (kiến trúc, lý do, trade-off) và `CHANGELOG.md` (lịch sử thay
 đổi).
