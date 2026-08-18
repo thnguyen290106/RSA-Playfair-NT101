@@ -6,6 +6,40 @@ trong `git log`.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Project không đánh số
 phiên bản (đây là bài tập, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
 
+## 2026-08-18 — Playfair tab 2 chia hai làn
+
+### Thay đổi
+
+- **Tab `2 · Mã hoá và giải mã` tách thành hai thẻ độc lập.** Trước đó hai chiều dùng chung một ô
+  nhập và một bộ ô kết quả, kèm nhãn động `OutputLabel` để người xem biết con số đang hiện là của
+  chiều nào. Giờ mỗi chiều một thẻ đầy đủ: ô nhập, hàng nút, ba ô kết quả (sau chuẩn hoá / đã chia
+  cặp / kết quả) và băng cảnh báo riêng.
+- **Mã hoá xong thì bản mã tự sang ô nhập của thẻ Giải mã**, kèm hộp thoại xác nhận. Vòng tròn mã
+  hoá → giải mã vì vậy không còn cần nút chuyển tay: `UseOutputAsInputCommand` đã bỏ. Cố ý **không**
+  tự chạy giải mã luôn — bấm riêng mới thấy được hai bước là hai việc khác nhau.
+- Giải mã xong cũng có hộp thoại, nói rõ kết quả là văn bản đã chuẩn hoá và vẫn còn ký tự đệm.
+- `CopyOutputCommand` thành hai lệnh, một cho mỗi làn, dùng chung một hàm xử lý clipboard.
+- **Lỗi tách theo làn.** Bản mã lẻ ký tự giờ chỉ làm đỏ thẻ Giải mã; ba ô kết quả của thẻ Mã hoá
+  còn nguyên. Trước đây một lỗi xoá sạch kết quả của cả hai chiều.
+- Đổi khoá hoặc biến thể còn xoá thêm **ô nhập của thẻ Giải mã**: bản mã trong đó do ma trận cũ sinh
+  ra, để lại là mời người dùng giải mã nó bằng một ma trận khác.
+
+### Ghi chú
+
+- Đây là **đảo lại một quyết định đã ghi thành văn** ("chỉ có một ô nhập cho cả hai chiều", với lý do
+  Playfair đối xứng nên tách ô chỉ làm người dùng copy qua lại). Lý do đảo: một ô nhập thì không bao
+  giờ thấy được bản mã và bản rõ giải ra cùng lúc. `PROJECT_CONTEXT.md` §5 và doc comment của
+  `PlayfairViewModel` đã cập nhật theo, không để lại hai nguồn sự thật.
+- **Thẻ "Vết từng cặp" giữ nguyên layout.** Bảng vết chỉ có nghĩa khi đặt cạnh ma trận sinh ra nó,
+  mà ma trận của hai chiều là một — hai bảng vết thì phải có hai ma trận. Thay vào đó tiêu đề thẻ
+  bind vào `TraceTitle` (chính `OutputLabel` cũ, đổi tên) để nói vết đang là của chiều nào.
+- `Run(bool encrypting)` vẫn là **một** đường xử lý cho cả hai chiều, chỉ khác bộ field nhận kết quả.
+  Hộp thoại vẫn đi qua setter `Status` → `Notifier.Info` như cũ, không thêm helper thông báo nào.
+- `Core/` không đổi một dòng: `PlayfairCipher` đã tách sẵn hai chiều từ trước.
+- `dotnet build` sạch (0 warning), `dotnet test` **521 pass**. `UiSmokeTests` đổi theo API mới và
+  thêm assert cho ba tính chất mới: bản mã tự sang ô giải mã, hai làn không xoá kết quả của nhau,
+  và lỗi không lan từ làn này sang làn kia.
+
 ## 2026-08-18 — Mọi băng xanh đều có viền chạy
 
 ### Thay đổi
