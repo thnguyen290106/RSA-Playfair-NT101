@@ -386,4 +386,29 @@
         </Style.Triggers>
     </Style>
 
+    <!--
+        InfoBanner đã có viền chạy sẵn. Trước đó mỗi chỗ muốn viền chạy phải tự
+        dựng lại Grid + Border + Rectangle; giờ chỉ cần một ContentControl, nên
+        mọi băng xanh trong app động giống nhau từ một nguồn.
+        Dùng ContentControl chứ không phải Border vì animation cần chạy trên
+        Rectangle.StrokeDashOffset — Border không vẽ được viền nét gạch.
+    -->
+    <Style x:Key="MarchingInfoBanner" TargetType="ContentControl">
+        <!-- Mặc định của Control là Left; băng chứa TextBlock cần Stretch để chữ xuống dòng đúng bề rộng. -->
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContentControl">
+                    <Grid>
+                        <Border Style="{StaticResource InfoBanner}">
+                            <ContentPresenter />
+                        </Border>
+                        <Rectangle Style="{StaticResource MarchingBorder}" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>
