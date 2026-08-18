@@ -173,7 +173,7 @@
                                 <StackPanel>
                                     <TextBlock Text="Giải mã" Style="{StaticResource SectionText}" />
                                     <TextBlock Style="{StaticResource BodyText}" Margin="0,6,0,10" TextWrapping="Wrap"
-                                               Text="Giải mã không lấy lại được bản rõ gốc: kết quả là văn bản đã chuẩn hoá và vẫn còn ký tự đệm đã chèn lúc mã hoá." />
+                                               Text="Giải mã không lấy lại được bản rõ gốc: kết quả là văn bản đã chuẩn hoá, và nếu lúc mã hoá có chèn ký tự đệm thì chúng vẫn còn trong kết quả." />
 
                                     <TextBlock Text="Bản mã" Style="{StaticResource FieldLabel}"
                                                HorizontalAlignment="Left" Margin="0,0,0,4" />
