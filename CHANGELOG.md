@@ -6,6 +6,33 @@ trong `git log`.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Project không đánh số
 phiên bản (đây là bài tập, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
 
+## 2026-08-18 — Mọi băng xanh đều có viền chạy
+
+### Thay đổi
+
+- **Thêm kiểu `MarchingInfoBanner` vào `UI/Theme/Controls.xaml`.** Trước đó hiệu ứng viền nét
+  gạch chạy chỉ có ở **một** chỗ duy nhất: băng xanh đầu tab `3 · Chữ ký số` của RSA, và nó được
+  dựng bằng tay — một `Grid` chứa `Border` kiểu `InfoBanner` với `Rectangle` kiểu `MarchingBorder`
+  phủ lên. Ba băng xanh còn lại trong app chỉ là `Border` thường nên nằm im.
+- Bọc cặp `Border` + `Rectangle` đó vào một `ControlTemplate` để nó thành **một** kiểu dùng chung.
+  Bốn băng xanh giờ động giống nhau từ cùng một nguồn:
+
+  | Màn hình | Băng |
+  |---|---|
+  | RSA tab 1 · Khoá | `KeyNotes` — lời nhắc về khoá hiện tại |
+  | RSA tab 3 · Chữ ký số | Giải thích ký/xác thực (chỗ duy nhất trước đây có viền chạy) |
+  | Playfair tab 1 · Ma trận | `VariantNote` — ghi chú về biến thể 5×5/6×6 |
+  | Playfair tab 2 · Mã hoá | `StepExplanation` — giải thích cặp đang chọn |
+
+### Ghi chú
+
+- `TargetType` là `ContentControl` chứ không phải `Border`: animation chạy trên
+  `Rectangle.StrokeDashOffset`, mà `Border` không vẽ được viền nét gạch.
+- Phải đặt `HorizontalContentAlignment="Stretch"` — mặc định của `Control` là `Left`, để nguyên
+  thì `TextBlock` bên trong không xuống dòng theo đúng bề rộng băng.
+- Không đổi hành vi nào: `dotnet build` sạch (0 warning), `dotnet test` vẫn **521 pass**, trong đó
+  `UiSmokeTests` soi mọi `BindingExpression` nên đổi kiểu XAML mà sai tên là test đỏ ngay.
+
 ## 2026-08-17 — Dọn phần Playfair vừa viết
 
 ### Thay đổi
