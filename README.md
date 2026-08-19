@@ -118,37 +118,9 @@ MVVM đầy đủ (`ViewModelBase`, `RelayCommand` / `AsyncRelayCommand`), khôn
 logic. Điều hướng không có navigation service: `MainViewModel` giữ danh sách `NavItem`, vùng nội
 dung bind thẳng vào `SelectedNav.Content`.
 
-## Vài quyết định đáng nhớ
+## Đọc thêm
 
-1. **Textbook RSA, không padding.** Đúng toán, dễ giảng, và app nói thẳng là không an toàn (tất
-   định: cùng bản rõ + cùng khoá → cùng bản mã). Chuẩn thật dùng PKCS#1 v1.5 hoặc OAEP.
-2. **Chặn cứng khoá dưới 512 bit khi ký.** Bản băm SHA-256 là số 256 bit, phải nhỏ hơn `n`. Không
-   lách bằng `H mod n` vì như vậy nhiều bản tin khác nhau cho cùng một giá trị ký.
-3. **Dùng `φ(n) = (p−1)(q−1)`, không dùng `λ(n)`.** Công thức quen hơn và không thêm khái niệm mới.
-4. **Header 4 byte trong container bản mã** thay cho padding, để round-trip không mất byte nào.
-5. **Playfair chèn ký tự đệm ngay trong lúc chia cặp**, không phải một lượt quét trước đó. Chèn
-   trước thì ký tự vừa chèn lại tạo ra cặp trùng mới ở phía sau (`AAA` là ví dụ).
-6. **Giải mã không tự xoá ký tự đệm.** Xoá hộ là đoán, và đoán sai thì bản rõ hiện ra sai mà không
-   ai biết.
-
-Vài bẫy đã xử lý: số Carmichael phải bị Miller–Rabin loại; byte `0x00` đầu block không được mất khi
-round-trip; bản băm phải đọc dạng **unsigned** big-endian, nếu không byte đầu ≥ `0x80` thành số âm;
-`J → I` phải làm **trước** khi bỏ ký tự lặp, nếu không khoá `JAIL` cho hai ô `I`; ký tự đệm cho cặp
-`XX` phải đổi sang `Q`/`9`; lui một bước phải viết `+ Size − 1` vì `(0 − 1) % 5 == −1` trong C#.
-
-## Test
-
-**521 test xUnit.** Nguyên tắc là "đúng toán học trước": logic `Core/` phải xanh trước khi bind vào
-UI. Test phủ các bẫy kể trên.
-
-`UiSmokeTests` dựng cửa sổ WPF thật trên thread STA, đi hết các tab, chạy các lệnh và soi trạng
-thái **mọi `BindingExpression`** đang sống — nhờ vậy sai tên property trong XAML là test đỏ, không
-phải một ô trắng im lặng. Nó cũng thu cửa sổ về 1000 × 640 để bắt lỗi layout ở kích thước nhỏ nhất
-theo thiết kế.
-
-```bash
-dotnet test
-```
-
-Chi tiết hơn: `PROJECT_CONTEXT.md` (kiến trúc, lý do, trade-off) và `CHANGELOG.md` (lịch sử thay
-đổi).
+`PROJECT_CONTEXT.md` đi sâu vào phần README này cố ý không nói: vì sao mỗi quyết định kỹ thuật được
+chọn và đánh đổi cái gì (textbook RSA không padding, `φ(n)` thay `λ(n)`, header 4 byte thay padding,
+Playfair chèn ký tự đệm trong lúc chia cặp), các bẫy đã xử lý, và chiến lược test.
+`CHANGELOG.md` ghi lịch sử thay đổi theo ngày.
