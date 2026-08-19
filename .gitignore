@@ -508,4 +508,4 @@ PROJECT_CONTEXT.md
 # ---------------------------------------------------------------------------
 # Project test — chỉ dùng để self-test trong lúc phát triển, không phát hành kèm
 # ---------------------------------------------------------------------------
-RSA-PlayFair-NT101-Test/
+RSA-PlayFair-NT101-Test*/

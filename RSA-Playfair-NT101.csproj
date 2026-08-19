@@ -10,12 +10,13 @@
   </PropertyGroup>
 
   <!-- Project test nằm trong cây thư mục của project này, nên phải loại khỏi
-       default glob của SDK; nếu không, file test sẽ bị compile vào cả app. -->
+       default glob của SDK; nếu không, file test sẽ bị compile vào cả app.
+       Glob có "*" để bao luôn các bản copy/backup cạnh nó. -->
   <ItemGroup>
-    <Compile Remove="RSA-PlayFair-NT101-Test/**" />
-    <Page Remove="RSA-PlayFair-NT101-Test/**" />
-    <None Remove="RSA-PlayFair-NT101-Test/**" />
-    <Resource Remove="RSA-PlayFair-NT101-Test/**" />
+    <Compile Remove="RSA-PlayFair-NT101-Test*/**" />
+    <Page Remove="RSA-PlayFair-NT101-Test*/**" />
+    <None Remove="RSA-PlayFair-NT101-Test*/**" />
+    <Resource Remove="RSA-PlayFair-NT101-Test*/**" />
   </ItemGroup>
 
 </Project>

@@ -6,6 +6,24 @@ trong `git log`.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Project không đánh số
 phiên bản (app minh hoạ, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
 
+## 2026-08-19 — Bản copy của project test không còn làm build app vỡ
+
+### Thay đổi
+
+- **Glob loại trừ trong `RSA-Playfair-NT101.csproj` đổi từ `RSA-PlayFair-NT101-Test/**` thành
+  `RSA-PlayFair-NT101-Test*/**`.** Một thư mục copy cạnh project test (`RSA-PlayFair-NT101-Test -
+  Backup/`) không khớp glob cũ, nên toàn bộ file test trong đó rơi vào default glob của SDK và bị
+  compile vào app — 1209 lỗi: `Xunit`/`Fact`/`Theory`/`InlineData` không tìm thấy (app không
+  reference xunit) và `AssemblyInfo` trùng thuộc tính (`obj/` của bản copy cũng bị kéo vào).
+- **`.gitignore` đổi tương ứng thành `RSA-PlayFair-NT101-Test*/`,** để bản copy cũng không bị theo
+  dõi.
+
+### Ghi chú
+
+- Sửa ở chỗ glob, không phải xoá thư mục copy: mọi bản copy đặt cạnh project test đều được loại
+  trừ, thay vì phải nhớ xoá từng lần.
+- `dotnet build` sạch 0 lỗi; `dotnet test` 521/521 pass.
+
 ## 2026-08-19 — README bỏ hai mục đã trùng với `PROJECT_CONTEXT.md`
 
 ### Thay đổi
