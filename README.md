@@ -9,33 +9,6 @@ bước biến đổi**, và nói thẳng những giới hạn của thuật to�
 
 ![Trang chủ](docs/images/01-home.png)
 
-## Tải về
-
-[**RSA-Playfair-NT101-v0.1-setup.exe**](https://github.com/thnguyen290106/RSA-Playfair-NT101/releases/latest)
-— Windows 10/11 64-bit. Không cần cài .NET: runtime đã nằm trong installer.
-
-Cài được vào Program Files (cần quyền admin) hoặc vào thư mục người dùng (không cần admin) — chọn ở
-bước đầu của trình cài. Installer chưa được ký số nên Windows sẽ cảnh báo "Unknown publisher";
-bấm **More info → Run anyway**.
-
-## Chạy từ source
-
-Cần .NET 10 SDK trên Windows (app dùng WPF).
-
-```bash
-dotnet run
-```
-
-Không cần cài gì thêm — không có dependency NuGet nào cho app, không có thư viện crypto ngoài
-`SHA256` và `RandomNumberGenerator` của .NET.
-
-Dựng lại file setup (cần [Inno Setup 6](https://jrsoftware.org/isdl.php)):
-
-```bash
-dotnet publish RSA-Playfair-NT101.csproj -c Release -r win-x64 --self-contained true -o publish/win-x64
-"C:/Program Files (x86)/Inno Setup 6/ISCC.exe" installer/setup.iss
-```
-
 ## RSA
 
 ### 1. Sinh khoá
@@ -125,18 +98,3 @@ UI/ViewModels/        Trạng thái và lệnh của từng màn hình.
 UI/Views/             XAML.
 UI/Theme/             Design system tự viết (Palette.xaml, Controls.xaml).
 ```
-
-`Core/` phải sạch WPF vì phần đáng soi nhất là toán học: tách ra thì test được bằng xUnit mà không
-cần dựng cửa sổ. `Microsoft.Win32.OpenFileDialog`, `Clipboard`, `MessageBox` vì vậy nằm ở
-`UI/Common/TextFileDialogs.cs`.
-
-MVVM đầy đủ (`ViewModelBase`, `RelayCommand` / `AsyncRelayCommand`), không code-behind nào chứa
-logic. Điều hướng không có navigation service: `MainViewModel` giữ danh sách `NavItem`, vùng nội
-dung bind thẳng vào `SelectedNav.Content`.
-
-## Đọc thêm
-
-`PROJECT_CONTEXT.md` đi sâu vào phần README này cố ý không nói: vì sao mỗi quyết định kỹ thuật được
-chọn và đánh đổi cái gì (textbook RSA không padding, `φ(n)` thay `λ(n)`, header 4 byte thay padding,
-Playfair chèn ký tự đệm trong lúc chia cặp), các bẫy đã xử lý, và chiến lược test.
-`CHANGELOG.md` ghi lịch sử thay đổi theo ngày.

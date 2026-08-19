@@ -6,6 +6,21 @@ trong `git log`.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Các mục trước v0.1 được
 đánh dấu bằng ngày vì lúc đó project chưa phát hành; từ v0.1 trở đi mỗi bản phát hành có số phiên bản.
 
+## 2026-08-19 — Bỏ đóng gói installer
+
+### Xoá
+
+- `installer/` (`setup.iss`, `make-icon.ps1`) và thư mục build `publish/`. App chỉ còn chạy từ source
+  bằng `dotnet run`; không phát hành file setup nữa. Lý do của các quyết định đóng gói cũ vẫn còn ở
+  mục v0.1 dưới đây và trong `git log`.
+- Mục "Tải về", "Chạy từ source", "Đọc thêm" trong README, và phần diễn giải sau cây thư mục ở mục
+  Kiến trúc — README giờ chỉ mô tả app làm gì và cây thư mục.
+
+### Đổi
+
+- `installer/app.ico` → `app.ico` ở root; `<ApplicationIcon>` trong csproj trỏ theo. Icon của exe
+  giữ nguyên.
+
 ## v0.1 — 2026-08-19 — Bản phát hành đầu tiên
 
 ### Thêm
