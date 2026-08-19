@@ -3,8 +3,38 @@
 Ghi lại các thay đổi đáng kể của app. Đây là mục đầu tiên của file — phần lịch sử trước đó nằm
 trong `git log`.
 
-Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Project không đánh số
-phiên bản (app minh hoạ, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
+Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Các mục trước v0.1 được
+đánh dấu bằng ngày vì lúc đó project chưa phát hành; từ v0.1 trở đi mỗi bản phát hành có số phiên bản.
+
+## v0.1 — 2026-08-19 — Bản phát hành đầu tiên
+
+### Thêm
+
+- **Installer Windows (`installer/setup.iss`, Inno Setup 6).** File `RSA-Playfair-NT101-v0.1-setup.exe`
+  (~45 MB) cài app kèm luôn .NET 10 runtime, nên **máy đích không cần cài .NET**. Cho chọn cài vào
+  Program Files (cần admin) hoặc `%LocalAppData%` (không cần admin) — `PrivilegesRequired=lowest` +
+  `PrivilegesRequiredOverridesAllowed=dialog`. Shortcut Start Menu mặc định, shortcut Desktop tuỳ chọn.
+- **Icon app (`installer/app.ico`) sinh bằng `installer/make-icon.ps1`.** Bốn frame 16/32/48/256px,
+  nền `#4F46E5` — chính là `PrimaryColor` của `UI/Theme/Palette.xaml` — chữ `RP` trắng.
+- **Metadata phiên bản trong `RSA-Playfair-NT101.csproj`:** `Version`, `Product`, `AssemblyTitle`,
+  `Company`, `ApplicationIcon`. Trước đó thuộc tính file của exe trống trơn và installer không có số
+  nào để so sánh khi upgrade.
+
+### Ghi chú
+
+- **Self-contained thay vì framework-dependent.** Đổi lại setup 45 MB (giải nén ra 143 MB) so với
+  ~1–2 MB, nhưng người nhận không phải đi tải .NET 10 Desktop Runtime trước — với app đưa cho người
+  khác chạy thử thì đây là đánh đổi đúng.
+- **Không bật `PublishTrimmed`:** WPF dùng reflection để resolve XAML nên trimmer cắt sai và app vỡ
+  lúc runtime chứ không phải lúc build. **Không bật `PublishSingleFile`:** installer đã gói hết rồi,
+  single-file chỉ làm app khởi động chậm vì phải giải nén ra temp mỗi lần chạy.
+- **Installer không có code signing.** Windows SmartScreen sẽ hiện "Unknown publisher" — cần
+  certificate mua tiền thật mới hết, chưa làm ở v0.1.
+- `installer/` chỉ chứa `.iss`, `.ps1`, `.ico` — không có `.cs`/`.xaml`, nên không rơi vào default
+  glob của SDK (csproj nằm ở root repo, xem mục dưới). Thêm code vào đó thì phải thêm glob loại trừ.
+- Self-test: `dotnet test` 521/521 pass; bản Release self-contained mở được cửa sổ; cài thật vào thư
+  mục tạm (401 file, 143 MB, không có `.pdb`) → app chạy được từ thư mục đã cài → uninstall xoá sạch
+  thư mục, shortcut và registry entry.
 
 ## 2026-08-19 — Bản copy của project test không còn làm build app vỡ
 

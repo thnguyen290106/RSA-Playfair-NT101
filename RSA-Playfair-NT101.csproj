@@ -7,6 +7,13 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>installer\app.ico</ApplicationIcon>
+
+    <!-- Metadata hiện ở thuộc tính file của exe và là số Inno Setup so sánh khi upgrade. -->
+    <Version>0.1.0</Version>
+    <Product>RSA &amp; Playfair</Product>
+    <AssemblyTitle>RSA &amp; Playfair</AssemblyTitle>
+    <Company>thnguyen290106</Company>
   </PropertyGroup>
 
   <!-- Project test nằm trong cây thư mục của project này, nên phải loại khỏi

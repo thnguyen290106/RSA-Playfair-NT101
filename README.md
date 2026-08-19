@@ -9,7 +9,16 @@ bước biến đổi**, và nói thẳng những giới hạn của thuật to�
 
 ![Trang chủ](docs/images/01-home.png)
 
-## Chạy thử
+## Tải về
+
+[**RSA-Playfair-NT101-v0.1-setup.exe**](https://github.com/thnguyen290106/RSA-Playfair-NT101/releases/latest)
+— Windows 10/11 64-bit. Không cần cài .NET: runtime đã nằm trong installer.
+
+Cài được vào Program Files (cần quyền admin) hoặc vào thư mục người dùng (không cần admin) — chọn ở
+bước đầu của trình cài. Installer chưa được ký số nên Windows sẽ cảnh báo "Unknown publisher";
+bấm **More info → Run anyway**.
+
+## Chạy từ source
 
 Cần .NET 10 SDK trên Windows (app dùng WPF).
 
@@ -19,6 +28,13 @@ dotnet run
 
 Không cần cài gì thêm — không có dependency NuGet nào cho app, không có thư viện crypto ngoài
 `SHA256` và `RandomNumberGenerator` của .NET.
+
+Dựng lại file setup (cần [Inno Setup 6](https://jrsoftware.org/isdl.php)):
+
+```bash
+dotnet publish RSA-Playfair-NT101.csproj -c Release -r win-x64 --self-contained true -o publish/win-x64
+"C:/Program Files (x86)/Inno Setup 6/ISCC.exe" installer/setup.iss
+```
 
 ## RSA
 
