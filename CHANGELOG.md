@@ -6,6 +6,28 @@ trong `git log`.
 Định dạng theo [Keep a Changelog](https://keepachangelog.com/vi/1.1.0/). Project không đánh số
 phiên bản (app minh hoạ, không phát hành), nên mỗi mục được đánh dấu bằng ngày.
 
+## 2026-08-19 — README bỏ hai mục đã trùng với `PROJECT_CONTEXT.md`
+
+### Thay đổi
+
+- **Bỏ mục "Vài quyết định đáng nhớ" khỏi README.** Sáu quyết định đánh số trong đó trùng
+  `PROJECT_CONTEXT.md` §10, và đoạn "Vài bẫy đã xử lý" trùng cột "Bẫy" của bảng module ở §4 (số
+  Carmichael, byte `0x00` đầu block, bản băm đọc dạng unsigned, `J → I` trước khi bỏ lặp, ký tự đệm
+  cho cặp `XX`, `+ Size − 1` ở biên ma trận). Giữ hai bản là để một bản lệch đi.
+- **Bỏ mục "Test" khỏi README.** Con số 521 test và đoạn mô tả `UiSmokeTests` đã nằm ở
+  `PROJECT_CONTEXT.md` §9.
+- **Dòng trỏ tài liệu ở cuối thành mục `## Đọc thêm`** và nói rõ `PROJECT_CONTEXT.md` chứa gì, thay
+  vì chỉ dán nhãn "kiến trúc, lý do, trade-off" — người đọc quyết định được có cần mở hay không.
+
+### Ghi chú
+
+- README còn lại đúng phần chỉ nó làm: app hiện gì ở từng màn hình, và code nằm ở đâu. 154 dòng còn
+  126 dòng.
+- **`dotnet test` không còn xuất hiện ở đâu trong README.** Đây là hệ quả có ý thức của việc bỏ mục
+  Test, không phải sót.
+- Chỉ sửa tài liệu, không đụng source code: không có symbol nào thay đổi, không có execution flow
+  nào bị ảnh hưởng.
+
 ## 2026-08-18 — Bỏ mọi tham chiếu tới môn học, coi đây là một app độc lập
 
 ### Thay đổi
